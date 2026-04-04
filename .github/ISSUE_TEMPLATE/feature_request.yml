@@ -1,0 +1,44 @@
+name: Feature Request
+description: Suggest an improvement or new capability
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this affect?
+      options:
+        - Workflow / phases
+        - Data libraries (directors, archetypes, effects, etc.)
+        - Anti-garbage / anti-convergence rules
+        - Premium calibration
+        - Cross-agent compatibility
+        - Documentation / README
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like?
+      description: Describe the feature or improvement. Be specific about what behavior you want.
+      placeholder: |
+        I'd like a Phase 2 rule that forces at least one "breathing" section per page...
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is this useful?
+      description: What problem does it solve? What output did you get that would have been better with this feature?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you tried a workaround? Is there an existing rule that partially covers this?
+    validations:
+      required: false

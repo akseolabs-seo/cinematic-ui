@@ -1,0 +1,70 @@
+---
+description: Apply when the user asks for a cinematic website, film-style landing page, director-inspired UI, or any design framed around a movie aesthetic. Do not apply for generic web design unless the user explicitly references a film, director, or cinematic style.
+globs: []
+alwaysApply: false
+---
+
+# Cinematic Layout — Cursor Rule
+
+Design the site like a film production, not like a generic landing page.
+
+## Core Principle
+
+This is not a style picker. Do not select a visual theme from a menu.
+This is a reasoning workflow. You must research a real director and a specific film, extract cinematic grammar from that research, and translate it into page structure, composition, and motion.
+
+The film is research input, not a spec sheet. The formal workflow begins when you turn those observations into artifacts.
+
+## Four-Phase Workflow (non-negotiable)
+
+```
+Phase 1: DECISIONS  → Complete start questionnaire → decisions.md
+Phase 2: STORYBOARD → Site-wide grammar → scene per page → signature composition → storyboard.md
+Phase 3: SPEC       → Extract CSS/JS from library entries → compiled-spec.md
+Phase 4: BUILD      → Implement from spec only → HTML / CSS / JS
+```
+
+Never skip phases. Never jump from user request to HTML without the artifacts.
+
+## Phase 2 Internal Order (non-negotiable)
+
+1. Site-wide cinematic grammar
+2. Per-page scene thesis
+3. Irreplaceable signature composition per page
+4. Shared system last
+
+## Start Questionnaire (run every invocation)
+
+Ask:
+1. How to start: Screenshot / Step-by-step / Surprise me
+2. Image placeholders: Yes / No
+3. Site niche and page list
+
+## Key Rules
+
+- Director + film must drive color, type, spacing, composition, and motion
+- Every page needs one signature composition that cannot collapse into a generic default grid
+- `fadeUp` / `opacity + translateY` max 2 times per page
+- At least 4 distinct entrance types per page
+- Maximum 1 heavy interaction per page
+- Grid is invisible alignment infrastructure — never the visible composition
+- Do not expose director names, chapter labels, or workflow metadata in the final UI
+
+## Demo Uniqueness Protocol
+
+When the same user has prior outputs in the workspace:
+- Run a uniqueness audit before Phase 1
+- Write a shell-ban list: traits that must not repeat
+- Choose a different primary composition family from the most recent comparable output
+
+## Reference Files
+
+All libraries live in `references/`. Load only what the current phase needs.
+Read `references/library-index.md` first to decide which files to load.
+
+Primary files:
+- `SKILL.md` — full skill logic and phase rules
+- `references/premium-calibration.md` — self-check after director brief
+- `references/anti-garbage.md` — final filter before coding
+- `references/anti-convergence.md` — prevent repeated shells
+- `references/implementation-guardrails.md` — Phase 3–4 anti-laziness rules

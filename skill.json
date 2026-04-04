@@ -1,0 +1,41 @@
+{
+  "name": "cinematic-ui",
+  "version": "1.0.0",
+  "description": "A reasoning-first web design skill that makes AI think like a film director — researching a real director and film, extracting cinematic grammar, and translating it into page narrative, composition, and motion. Not a style picker. A director's workflow.",
+  "author": {
+    "name": "akseolabs-seo",
+    "url": "https://github.com/akseolabs-seo"
+  },
+  "repository": "https://github.com/akseolabs-seo/cinematic-ui",
+  "homepage": "https://github.com/akseolabs-seo/cinematic-ui",
+  "license": "MIT",
+  "keywords": [
+    "cinematic",
+    "web-design",
+    "ai-skill",
+    "film-director",
+    "design-system",
+    "layout",
+    "storyboard",
+    "ui",
+    "ux",
+    "reasoning",
+    "claude",
+    "cursor",
+    "codex",
+    "gemini",
+    "windsurf"
+  ],
+  "skills": [
+    "cinematic-ui"
+  ],
+  "entryPoints": {
+    "claude": "CLAUDE.md",
+    "codex": "CODEX.md",
+    "gemini": "GEMINI.md",
+    "cursor": ".cursor/rules/cinematic-ui.mdc",
+    "windsurf": ".windsurf/rules/cinematic-ui.md",
+    "copilot": ".github/copilot-instructions.md",
+    "agents": "AGENTS.md"
+  }
+}

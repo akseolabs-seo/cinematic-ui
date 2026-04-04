@@ -1,0 +1,65 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="109" y1="82" x2="1151" y2="574" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D0A09"/>
+      <stop offset="0.58" stop-color="#15110E"/>
+      <stop offset="1" stop-color="#23180F"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(930 236) rotate(90) scale(214 248)">
+      <stop stop-color="#E1B37E" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#E1B37E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(975 465) rotate(90) scale(168 305)">
+      <stop stop-color="#9E6A3B" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#9E6A3B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pill" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#E9D8C5"/>
+      <stop offset="1" stop-color="#9B7A58"/>
+    </linearGradient>
+    <linearGradient id="line" x1="120" y1="0" x2="1128" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8D6846" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#8D6846" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#8D6846" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blurGlow" x="688" y="24" width="509" height="547" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" rx="36" fill="url(#bg)"/>
+  <rect x="24" y="24" width="1232" height="592" rx="28" stroke="rgba(255,255,255,0.08)"/>
+  <rect x="44" y="44" width="1192" height="552" rx="24" stroke="rgba(255,255,255,0.05)"/>
+
+  <line x1="120" y1="122.5" x2="1128" y2="122.5" stroke="url(#line)"/>
+  <line x1="120" y1="520.5" x2="1128" y2="520.5" stroke="url(#line)"/>
+
+  <g opacity="0.5">
+    <path d="M775 111V530" stroke="#7E6247" stroke-opacity="0.3"/>
+    <path d="M960 111V530" stroke="#7E6247" stroke-opacity="0.3"/>
+  </g>
+
+  <g filter="url(#blurGlow)">
+    <ellipse cx="942" cy="297" rx="182" ry="201" fill="url(#glowA)"/>
+  </g>
+  <ellipse cx="986" cy="467" rx="141" ry="110" fill="url(#glowB)"/>
+
+  <g>
+    <rect x="840" y="138" width="206" height="364" rx="103" fill="url(#pill)" fill-opacity="0.14"/>
+    <rect x="840.5" y="138.5" width="205" height="363" rx="102.5" stroke="rgba(255,255,255,0.17)"/>
+    <rect x="887" y="184" width="113" height="272" rx="56.5" stroke="rgba(255,255,255,0.16)"/>
+    <path d="M840 356H1046" stroke="rgba(255,255,255,0.08)"/>
+  </g>
+
+  <text x="104" y="122" fill="#CBA984" font-family="Segoe UI, Arial, sans-serif" font-size="18" letter-spacing="7">CINEMATIC UI</text>
+  <text x="104" y="170" fill="#8F7358" font-family="Segoe UI, Arial, sans-serif" font-size="14" letter-spacing="4">DIRECTOR + FILM → RHYTHM / SPACE / LIGHT</text>
+
+  <text x="104" y="280" fill="#F4E4D4" font-family="Segoe UI, Arial, sans-serif" font-size="92" font-weight="700">High-End</text>
+  <text x="104" y="372" fill="#F4E4D4" font-family="Segoe UI, Arial, sans-serif" font-size="92" font-weight="700">Websites</text>
+  <text x="104" y="464" fill="#F4E4D4" font-family="Segoe UI, Arial, sans-serif" font-size="92" font-weight="700">With Film DNA</text>
+
+  <text x="108" y="534" fill="#D2BCAB" font-family="Segoe UI, Arial, sans-serif" font-size="28">A cross-agent skill for turning cinema research into premium web direction.</text>
+
+  <text x="897" y="100" fill="#8F7358" font-family="Segoe UI, Arial, sans-serif" font-size="14" letter-spacing="4">PREMIUM DEMO MODE</text>
+  <text x="842" y="565" fill="#8F7358" font-family="Segoe UI, Arial, sans-serif" font-size="13" letter-spacing="3.2">FOR CODEX / CLAUDE / GEMINI / AGENTS / COPILOT</text>
+</svg>
