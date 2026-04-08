@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Archives / temp
+*.zip
+*.tmp
+*.bak
+
+# Skill-local junk
+notes/
+scratch/

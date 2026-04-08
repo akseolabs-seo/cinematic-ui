@@ -1,0 +1,56 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which phase is affected?
+      options:
+        - Phase 1 — Decisions
+        - Phase 2 — Storyboard
+        - Phase 3 — Compiled Spec
+        - Phase 4 — Build & Verify
+        - Not phase-specific
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Which AI tool are you using?
+      options:
+        - Claude Code
+        - Codex / ChatGPT
+        - Gemini / Antigravity
+        - GitHub Copilot
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug. Include the director + film you chose if relevant.
+      placeholder: |
+        Director: Villeneuve / Film: Arrival
+        The storyboard phase skipped the uniqueness audit and went straight to section archetypes...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: The uniqueness audit should have run before hero archetype selection.
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output or screenshots
+      description: Paste the problematic section from decisions.md, storyboard.md, compiled-spec.md, or a screenshot of the built page.
+    validations:
+      required: false

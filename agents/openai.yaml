@@ -1,0 +1,43 @@
+name: cinematic-ui
+version: 1.0.0
+description: >
+  A reasoning-first web design skill that makes AI think like a film director.
+  Not a style picker or a materials library. A structured director's workflow:
+  research a real film and director, extract cinematic grammar, translate it into
+  page narrative, composition, and motion — then build.
+
+author:
+  name: akseolabs-seo
+  url: https://github.com/akseolabs-seo
+
+repository: https://github.com/akseolabs-seo/cinematic-ui
+license: MIT
+
+topics:
+  - web-design
+  - cinematic
+  - film-director
+  - layout
+  - storyboard
+  - ui
+  - ux
+  - design-system
+  - reasoning
+
+interface:
+  display_name: Cinematic UI
+  short_description: Build film-inspired websites with director-led visual reasoning
+  default_prompt: >
+    Use cinematic-layout to design a website.
+    Pick the director and film yourself.
+    Research the film before locking Phase 1 if web access is available.
+    Run the Demo Uniqueness Protocol.
+    Do not reuse shells from previous demos.
+
+policy:
+  allow_implicit_invocation: true
+
+skills:
+  - id: cinematic-ui
+    entry: SKILL.md
+    references: references/
