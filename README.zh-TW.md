@@ -190,7 +190,7 @@ scripts/
 
 ## 致謝
 
-建構於 [GSAP](https://gsap.com)、[Three.js](https://threejs.org) 與 [Lenis](https://lenis.darkroom.engineering)。結構多樣性與裝置連續性的想法，受益於 [product-launch-motion](https://github.com/AbubakrChan/product-launch-motion) 和 [klik-anim-skill-creation](https://github.com/t3knobox/klik-anim-skill-creation)。
+建構於 [GSAP](https://gsap.com)、[Three.js](https://threejs.org) 與 [Lenis](https://lenis.darkroom.engineering)。
 
 ## 授權
 

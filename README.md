@@ -16,7 +16,7 @@ Then tell your agent: `/cinematic-ui a homepage for a pour-over coffee subscript
 
 ## Launch film
 
-[![Watch the Cinematic UI 2.0 launch film](docs/launch-film.jpg)](https://github.com/akseolabs-seo/cinematic-ui/releases/download/v2.8.0/cinematic-ui-2.0-launch.mp4)
+[![Watch the Cinematic UI 2.0 launch film](docs/launch-film-en.jpg)](https://github.com/akseolabs-seo/cinematic-ui/releases/download/v2.8.0/cinematic-ui-2.0-launch.mp4)
 
 **[Watch the launch film](https://github.com/akseolabs-seo/cinematic-ui/releases/download/v2.8.0/cinematic-ui-2.0-launch.mp4)** · 1:30, MP4, with sound, on-screen text in Traditional Chinese
 
@@ -222,9 +222,6 @@ keyboard order, every look, frame-by-frame video rendering.
 ## Credits
 
 Built on [GSAP](https://gsap.com), [Three.js](https://threejs.org) and [Lenis](https://lenis.darkroom.engineering).
-Ideas on structural variety and device continuity were sharpened by reading
-[product-launch-motion](https://github.com/AbubakrChan/product-launch-motion) and
-[klik-anim-skill-creation](https://github.com/t3knobox/klik-anim-skill-creation).
 
 ## License
 
