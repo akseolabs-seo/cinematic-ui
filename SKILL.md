@@ -1,270 +1,307 @@
 ---
 name: cinematic-ui
-description: Design and build websites with film-inspired visual systems, director-driven art direction, storyboard-first layout planning, and cinematic motion. Use when the user asks for a cinematic site, movie-style landing page, director-inspired UI, film-noir, sci-fi, romance, thriller, action, animation, or a movie-like website aesthetic, including requests phrased in Chinese. Do not use for generic web design unless the user explicitly wants a film or director reference.
+description: >-
+  Direct a website the way a film is made: cast a director and a film, choose the medium the film calls for (photoreal 3D, hand-drawn, ink wash, print, pixel, neon, type, photography…), cast a lead, ask for the assets, write a shot list for every section, then shoot it with a scroll-driven camera, designed cuts, a grade, and a screening pass on rendered frames. Use for Awwwards / Framer-grade landing pages, brand, product, portfolio and studio sites, immersive or WebGL / 3D sites, scrollytelling, "cinematic", "film style", "director style", "電影感", "導演風格", "分鏡", "像拍電影一樣做網站", a director's colour or film look (retro / nostalgic, film grain, neon / futuristic, "復古懷舊", "霓虹", "調色", "美術風格", "海報風格"), premium non-template design. Also directs apps in app mode: dashboards, back offices, admin panels, consoles, internal tools and the signed-in side of a SaaS product ("後台", "管理後台", "儀表板", "控制台", "面板", "dashboard", "admin").
+metadata:
+  version: "2.8.0"
+  edition: "Cinematic UI 2.0 — Director's Cut"
 ---
 
-# Cinematic Layout
+# Cinematic UI 2.0 — Director's Cut
 
-## Primary Platforms
+You are the director. The site is a film whose playhead is the scrollbar. A section is a scene, the
+viewport is the frame, a scroll is a cut or a camera move, and the visitor is the audience, the editor,
+and — once — a participant. You are not decorating a layout. You are deciding what the audience sees, in
+what order, from where, in what light, made of what, for how long — and why.
 
-This skill is built and maintained for **Claude Code** and **OpenAI Codex** as the two primary runtimes.
+One idea carries the whole skill: **borrow the film's mechanics, never its costume.** A director's style is
+a set of decisions (where the camera stands, how long a shot holds, what the light hides, how a cut
+lands, what the picture is made of). Those decisions translate into structure, motion, medium and
+material. Film titles, characters, props and quotes do not appear in the product's UI unless the user
+asks for a homage.
 
-**Claude Code**
-- Invoke with `/cinematic-ui`.
-- Project memory and Claude-specific notes live in [`CLAUDE.md`](CLAUDE.md).
-- Install path (Windows): `C:\Users\<your-user>\.claude\skills\cinematic-layout`
-- Install path (macOS / Linux): `~/.claude/skills/cinematic-ui`
+## Sites and apps
 
-**OpenAI Codex / ChatGPT**
-- Codex-specific context lives in [`CODEX.md`](CODEX.md).
-- Install path: `$CODEX_HOME/skills/cinematic-ui`
+| | Site | App |
+|---|---|---|
+| Playhead | Scroll (and the visitor's other triggers) | The task: routes, selection, filters, the record's state |
+| Output | A website people visit | A dashboard, back office, admin panel, console or logged-in product a crew works in all day |
+| Rhythm set by | The visitor's hand | The shift: the same few jobs, hundreds of times |
+| Read | everything below | **`references/app-mode.md` first**: it replaces stages 1, 6, 7 and 9, the award pass, the loader and the lazy cut, and changes how the rest apply |
 
-Additional compatibility files:
+**Apps are directed too, on a smaller budget.** When the brief is a dashboard, back office, admin, console,
+internal tool or the signed-in side of a SaaS product (後台, 管理後台, 儀表板, 控制台, 面板), work in app mode.
+Cinema gets about a tenth of the frame — the signature set only this product could have, the light that
+tells the crew where to look, continuity across views, the once-a-day moments — and the rest is a quiet,
+dense, keyboard-driven instrument built on `kit/app.js`, cast with `kit/fixtures.js` data, and screened in
+every state with `scripts/app-screening.mjs`. A marketing site and its product app are two productions.
 
-- [`GEMINI.md`](GEMINI.md) — Gemini / Antigravity-style workflows
-- [`AGENTS.md`](AGENTS.md) — shared cross-tool reference
-- [`.github/copilot-instructions.md`](.github/copilot-instructions.md) — GitHub Copilot
-- [`.cursor/rules/cinematic-ui.mdc`](.cursor/rules/cinematic-ui.mdc) — Cursor (auto-loaded on clone)
-- [`.windsurf/rules/cinematic-ui.md`](.windsurf/rules/cinematic-ui.md) — Windsurf (auto-loaded on clone)
+**Scope.** This skill directs websites and apps. A site built on the kit can be recorded as a video with
+`node scripts/render-film.mjs <site> --tour 30`.
 
----
+## The crew — what each film job means here
 
-Design the site like a film production, not like a generic landing page.
-Treat this as a research-and-translation skill plus a design-library skill. Its job is to study film references, extract usable cinematic signals, then turn those signals into page narrative, section structure, motion direction, and implementable web specs.
-The core mechanism is fixed: use a director and a specific film to determine the site's emotional language, then translate that language into web structure and implementation. Do not replace this with generic premium-brand logic.
-Do not confuse the film with the workflow artifact. The film is research input and emotional source material. The computer-operable workflow begins only when those observations are translated into `decisions.md`, `storyboard.md`, `compiled-spec.md`, and implementation.
+| On a film set | On this job |
+|---|---|
+| Producer | The brief: who the audience is, what they must do, what is true and may be claimed; the assets and budget |
+| Screenwriter | Real copy, written before any layout. Headlines are dialogue; they are short |
+| Director | You. One point of view, applied to every decision |
+| Lead actor | The one entity the eye follows through the whole piece. It must change |
+| Supporting cast, extras | Secondary objects, UI surfaces, type; particles, dust, crowds |
+| Location, set | The world the scenes happen in: a space, a material, a kind of light |
+| Cinematographer | Camera, lens, exposure, depth of field; the format and medium of the picture |
+| Gaffer | Light: where it comes from, what it reveals, what it leaves dark |
+| Production designer | The frame's grammar: grid, type, colour, material, texture |
+| Art department | Assets: photographed, supplied, generated, drawn, modelled, or procedural |
+| VFX | Three.js, shaders, particles, stylised rendering |
+| Editor | Scroll rhythm, cuts between scenes, how long each shot holds |
+| Colourist | Grade: the colour script across acts, grain, contrast |
+| Sound | Silent by default, opt-in only |
+| Title designer | Opening titles, intertitles, end credits (the footer) |
 
-## Start
+## The production
 
-- Every invocation must complete the start questionnaire before Phase 1 begins.
-- Do not enter `decisions.md`, director selection, film selection, architecture, or visual planning until the questionnaire is complete.
-- Mirror the user's language in every question and deliverable.
-- Keep questions short and ask only one blocking question at a time.
-- Run this start questionnaire on every invocation:
-  1. Ask how to start:
-  - `Screenshot`: reverse-engineer a visual reference from an image or URL.
-  - `Step-by-step`: let the user choose genre, director, and film.
-  - `Surprise me`: pick a fresh combination that differs from previous work when project history is available.
-  2. Ask whether the design should include image placeholders.
-  3. Ask for the site's niche and page list before moving into architecture.
-- If the environment supports structured questionnaires or forms, use them.
-- If the environment does not support structured questionnaires, ask the same items in plain language.
-- If the user pre-answers some items in the initial request, confirm or record those answers and only ask for the missing items.
-- Phase 1 starts only after all required start-questionnaire items are answered or explicitly inferred from the user's request.
+Work in this order. Each stage ends with something written or something rendered. Keep all writing in
+one file, `treatment.md`, next to the build. Keep it lean — the shot list and the copy are its bulk — and
+treat it as the thing you check the build against.
 
-## Demo Uniqueness Protocol
+### 1. Development — the brief and the logline
+Find the product truth: what it is, who it is for, the one action that matters, what can honestly be
+claimed. If the product or page scope is genuinely unknowable, ask once. Otherwise decide and proceed.
+Write the **logline**: one sentence in which someone wants something, something is in the way, and
+something changes. Write the **audience arc**: what they believe when they arrive, what they believe when
+they leave. Every scene exists to move them along that arc.
 
-Use this whenever the same user has already used this skill to create one or more other sites, demos, or homepage concepts.
+### 2. Cast the director
+Pick one director and one of their films (or take the user's). Choose by the *dramatic problem* the
+product has — it needs trust, awe, intimacy, speed, order, wit — not by genre association. Any film can be cast:
+the skill has no film library. When the user names a film, research it. When they describe a look ("90s Hong Kong
+late night, lonely, humid"), search for films that match the *picture*, not only the theme. Either way, follow
+`references/film-research.md`: sourced credits and decisions, every line tagged [P]/[S]/[W]/[I], and frames looked at
+before anything is built. Study a
+specific sequence, not the director's reputation, and extract **five to seven mechanisms**, each a
+concrete, observable decision and its translation into this site. Read `references/directors.md` and
+`references/film-grammar.md`. Test each mechanism: *could a developer build it from this sentence, and
+could a viewer point at it on screen?*
+Hold a **casting session** in the treatment, without waiting for the user: three candidate directors,
+three lines each (the mechanism that solves the dramatic problem, a signature shot, the risk, what it is
+wrong for), then keep one and record why the other two were set aside. Ask of the winner: *could a
+competitor use this direction unchanged?* If yes, it is not a direction yet.
+Read **the filmography** (`~/.cinematic-ui/filmography.md`; create it if missing and tell the user): the
+new treatment states how it differs from the last three productions on at least four of director,
+medium, form, skeleton, type, lead, interaction, ending. The worked examples inside this skill count as already made.
 
-- Treat prior outputs for the same user as design-history context, not as reusable shells.
-- Before Phase 1 is complete, inspect the immediately previous outputs when available and record a uniqueness audit in `decisions.md`.
-- Write a `Previous-work audit` that names the recurring traits most likely to repeat. Examples:
-  - left-copy right-object hero
-  - top nav plus stacked framed panels
-  - repeated rounded premium cards
-  - pill metadata row
-  - dark luxury palette with thin borders
-- Write a `Shell-ban list` for the new project. These are layout traits that are explicitly forbidden because they would make the new work too similar to prior work.
-- Write a `Primary composition family` for the new project before any page design begins. Examples:
-  - full-bleed stage
-  - corridor
-  - vertical tower
-  - archive wall
-  - panoramic slab
-  - cutaway monolith
-- The new project must choose a different primary composition family from the user's most recent comparable output unless the user explicitly asks for an intentional sequel.
-- If the user asks for multiple different sites over time, prioritize uniqueness across site shell, hero posture, section rhythm, navigation posture, density pattern, and dominant geometry, not just color or typography.
-- A new demo fails if its wireframe would still look like a previous demo after removing color, type styling, and decorative effects.
-- If project history is unavailable, state that and still write a `Shell-ban list` against the most common fallback templates you might otherwise drift toward.
+### 3. Choose the medium
+Decide what the picture is made of, from the film: observed (photography, footage), constructed
+(photoreal 3D), drawn (line, cel, painted multiplane, ink), designed (flat shapes, print, type), heightened
+(neon, grain, gradient light), elemental (ink, liquid, cloth), handmade (stop motion). Read
+`references/looks.md` for the decision rule and how each is built. **The kit's 3D stage is one medium,
+not the default**: a film made of type, drawings or photographs may need no canvas at all. Write one
+sentence — *this film's mechanism becomes this mark-making, spatial and temporal language because…* — and
+a "why not 3D" (or "why 3D") line.
+Then **cast the grade** (`references/grades.md`): the film's colour is part of its mechanism, so commit to it.
+Gather six to twelve reference stills of the cast sequence, measure them (`node scripts/grade-from-stills.mjs
+refs/`), and write the GRADE block: where the colour comes from, the blacks, the highlights, the hues and banned
+hues, the grain, the `look` numbers. If you have no stills, use the look book's starting values, mark the grade
+*unmeasured*, and ask for stills in the asset call. The grade reaches the pictures (`kit/grade.js` on a DOM site,
+`stage.look` on the stage: same parameters) and the page (ground, ink, accent and chrome tokens from the same
+measurement). A retro film looks like that film's print, and a neon film is lit by its sources, not just tinted pink.
+Then **cast the world and the poster** (`references/art-direction.md`). Write the ART block from the production
+designer's decisions: shape, material, ornament, era of making, density per scene, in-world graphics. Write its
+**UI map**, which turns them into the frame, grid, cards, buttons, dividers, forms and footer. Then write the
+POSTER line: the composition grammar the first frame, OG image, title cards and end credits borrow from the
+film's key art. The props, logos and the poster itself are costume.
 
-## Operating Model
+### 4. Casting, locations, and the asset call
+Name the **lead**: an object, a material, a figure, a typeface behaving like a character, a light. The
+director decides how the camera looks at it; **the product's verb decides what it does** — it files,
+pours, deploys, heals, connects. Give it an arc of at least three visible states built on that verb:
+planted early, paid off at the turn, resolved in the final image. A lead that only rotates is an extra.
+Award-winning sites run five to seven states of one subject, each a different shot of it, never a new
+picture per section: write the state list now.
+Name the supporting cast and the **location**: one coherent world with one light logic.
+Then run **the asset call** (`references/looks.md`): list every asset the film needs and ask the user
+once — will they supply it, should it come from a free licensed library (real photographs, footage, sound),
+should it be AI-generated (with tool, count and rough cost), or should the shot be redesigned around a stand-in? Real things (logo, product, people, screenshots, numbers) come from
+the user. Do not spend generation credits without a yes; if AI assets were approved up front, do not
+ask again. **Casting test:** before promising a close-up, render the asset at that size and look. If it
+does not survive, get a better asset or change the shot.
 
-Use four strict phases. Do not skip forward. Keep each phase's output in its own markdown file inside the working project.
+### 5. Screenplay
+Write every visible word now: headlines, body, labels, CTA, and the title cards. Product-first — a
+reader who has never heard of the film must understand everything.
 
-1. Phase 1: decisions
-2. Phase 2: storyboard
-3. Phase 3: compiled spec
-4. Phase 4: build and verify
+### 6. Storyboard — the shot list
+Decide the **form** first: a long scroll film, a chaptered piece, a mostly flowing document with a few
+set pieces, or several pages. The product's information decides; not every site is a theatrical scroll.
+When the copy is rich, the reader came for the document: pin only what develops, budget the hold, and
+keep every word the client supplied.
+Before the rows, fill **the award pass** (`references/award-reel.md`): the world object and every place it
+reaches (loader, cuts, buttons, progress, cursor, footer), the lead's states, the loader as shot one, what
+the cuts are made of, the one accent and its meaning, the type switch and display extreme, the 3–5
+instruments, the visitor's verb, the triggers (scroll is one of at least four: entry, autoplay, click, hover,
+drag), the type cast from `kit/type-fx.js`, and which scenes are set pieces and which are calm documents. It is
+distilled from twenty-one award winners; it is how the director's mechanisms reach every frame.
+Then one row per scene, hero to credits (`references/storyboard.md`): the beat, the copy, shot size, lens
+and angle, camera move, blocking, light and colour, set density (from the ART block), what must be built, the asset and the closest shot it
+can carry, the cut out, length, energy, the money frame, the mobile cut.
+Write **the audience's part**: one interaction that enacts the product's promise — action → response →
+lasting consequence → the same thing by keyboard and touch (`references/editing-and-motion.md`).
+Set **the skeleton** deliberately — the shape of the energy, where the turn falls, how it opens, how it
+ends — because two sites can look nothing alike and still be the same film underneath. Then read the
+sequence as a whole: every change of shot and every repetition is there for a reason you can state, no
+device (a type entrance, a light event, a camera move) is used by habit, and the lead is different at
+the end.
 
-Inside Phases 2 and 3, follow this order without skipping:
-1. Define the site-wide cinematic grammar.
-2. Write one independent scene thesis for each major page role.
-3. Lock one irreplaceable signature composition per page.
-4. Derive the shared system only after the page compositions are already clear.
+### 7. Animatic — block before you light
+Build the whole page rough, in the chosen medium: real copy, stand-in art, the moves and cuts from the
+shot list. A drawn film blocks with rough layers and silhouettes; a photographed one with placeholder
+frames in sequence; a 3D one with grey geometry. Scroll it. Rhythm and blocking problems are cheap here.
+Start from `kit/site-dom.html` (no canvas: type, shape, image) or `kit/site.html` (3D stage) — keep the
+wiring, replace everything visible.
 
-Read [references/output-templates.md](references/output-templates.md) before creating those files.
+### 8. Principal photography
+Shoot it scene by scene: build or place the cast and set (`references/looks.md`,
+`references/vfx-threejs.md`), light it, design the frame (`references/production-design.md`), cut it
+together (`references/editing-and-motion.md`). Order within a scene, as on a set: blocking → light →
+material → lens → grade.
 
-## Delegation Model
+### 9. Screening — dailies, then the projection room
+Render it and look at it. `node scripts/screening.mjs <dir>` shoots every scene on desktop, a short laptop
+and a phone, and lays the frames out as contact sheets; read the sheet as an image for sequence and rhythm. Then open
+five frames at full size — the opening, the closest shot of the lead, the densest reading section, the
+primary control, the mobile signature moment — because craft is judged at viewing size, not in
+thumbnails. If you can delegate, hold a **test screening**: a fresh agent sees only the contact sheets
+and says what the product is, what to do, what the lead is and which frame is the climax; compare with
+the logline. Then screen it as a jury would (design 40 %, usability 30 %, creativity 20 %, content 10 %): is the same
+subject in most frames and different at the end, is the accent findable in one glance, would the chrome
+be recognisable as this world with the hero cropped out, is any cut a plain fade?
+Write notes as named corrections (`references/screening.md`), reshoot, screen again.
+**At least one full screening happens before anything is called finished**, and the accessible cut is
+screened too (`--reduced`).
 
-- If the environment supports sub-agents or parallel workers, use them by default after the director and film are locked.
-- Keep one lead agent responsible for the site-wide cinematic grammar and final coherence.
-- Delegate bounded sidecar tasks such as:
-  - film or niche reference research
-  - page-role scene exploration for distinct pages
-  - compiled-spec drafting for disjoint page roles
-  - implementation or verification on separate files
-- Do not let multiple agents independently redefine the director, film, or site-wide visual thesis.
-- Merge delegated work back into one directed system. The result must still feel like one film, not a committee.
-- Do not skip delegation unless the task is too small to benefit from it or the environment does not support sub-agents.
+### 10. Delivery
+Report what was screened and what was not, the director, medium and mechanisms, whether the GRADE, ART and
+POSTER blocks were researched (sources and measured frames) or written from memory, every stand-in and every
+generated asset, any open asset call, and how to run it. Never describe a frame you did not look at.
+Append one line to the filmography: date, product, director / film, medium, form, skeleton, type, lead,
+interaction, ending, instruments / switch device (so the chrome rotates too, not only the film). It is the only file this skill keeps outside the project; mention the append.
 
-## Progressive Loading
+## The director's rules
 
-Keep `SKILL.md` lean. Load only the references needed for the current phase.
+1. **Mechanism, not mood.** Every stylistic claim in the treatment names something visible on screen.
+2. **The medium, the grade and the world are cast, not defaulted.** What the picture is made of, what colour its
+   light is and what its world is built from all come from the film: researched, and measured from its frames. Nothing (3D, grain, glow, a camera drift, a tint) is on screen
+   because the kit had it switched on. Once cast, the grade is committed in full: a timid grade is a different film.
+3. **One lead, one arc.** The eye always knows what to follow, and it is not the same at the end.
+4. **Changes and repetitions are both chosen.** A new shot size, a repeated frame, the same cut twice:
+   each is a decision with a reason. Sameness nobody chose is a slideshow; variety nobody chose is noise.
+5. **Motion is camera or performance.** Something moves because the camera moved or because an actor
+   did something. A thing that fades up for no reason is neither; cut it.
+6. **Hold.** A composed frame that stays still is a shot. Contrast makes energy; constant motion is noise.
+7. **Close-ups are earned.** The shot is no closer than the asset can bear. Weak assets stay wide, in
+   silhouette, or off screen.
+8. **Ask for what you cannot make.** Real products, people and brands are requested, not invented.
+9. **The audience has a part.** Beyond scrolling, the visitor does one thing that means something.
+10. **The frame is designed at rest, on every screen.** Pause anywhere, at any window size: it should be a
+    composition someone chose. A page composed for one viewport is not finished.
+11. **Words stay words.** Copy, links and controls are real DOM text — readable, selectable, focusable,
+    indexable — at every moment, on every device.
+12. **Two cuts ship.** The theatrical cut, and the accessible cut (`prefers-reduced-motion`, small
+    screens, no WebGL): every scene still composed, every word still there.
+13. **Screened or it did not happen.** Claims about how it looks come from rendered frames.
 
-### Always read first
+## The lazy cut — refuse it
 
-- [references/library-index.md](references/library-index.md)
-- [references/premium-calibration.md](references/premium-calibration.md)
+These are what an undirected page looks like. If the shot list contains one, reshoot the scene.
 
-### Phase 1: Decisions
+- Centred headline, subhead, two buttons, a glowing blob behind them
+- A row of three equal cards; a bento grid standing in for an idea
+- Everything fading up 24 px as it enters the viewport, forever
+- Photoreal 3D because the kit had a stage, on a film that was never solid or glossy
+- A 3D object that floats and spins in the hero and is never seen again
+- A close-up of code primitives pretending to be the product
+- A filter over generic geometry, called hand-drawn; a brush font, called ink
+- Purple-to-blue gradient, glassmorphism, and Inter, chosen by nobody
+- A strong first screen followed by ordinary feature / testimonial / FAQ blocks
+- A film reference that survives only as a palette and some adjectives
+- A cast film whose colour never reached the page: tidy hex tokens on white, pictures ungraded, "retro" as one sepia overlay, "neon" as a pink–cyan gradient behind white type
+- The two uncast grades: warm paper + vermilion + dark ink; cool grey + one blue or green accent
+- The film's grade on a template's world: rounded cards, pill buttons and a four-column footer under a Wong Kar-wai
+  light. Or the opposite, its props pasted on as decoration: umbrellas, scorpions, holograms, a pink hotel
+- A floating-heads hero, or the film's poster reproduced: borrow the poster's grammar, never its artwork or lettering
+- A film "remembered" instead of researched: credits, palettes and set details written from memory and presented as fact
+- Scroll-jacking that traps the reader in a section with nothing developing
+- Mobile as the desktop page squeezed into a column
+- A spinner or a lone percentage as the loader; a loader that has nothing to do with the first shot
+- A centred mid-size headline (48–72 px) because nobody chose an extreme
+- An accent colour on every button and heading, meaning nothing; mono "[01]" labels on a product that is not about precision
+- A themed hero followed by stock UI: the world never reaches the buttons, the progress mark, the footer
+- Every section joined by a fade, or by the same clip-path wipe whatever the sections are
+- Every performance scrubbed by scroll: nothing plays by itself, nothing waits for a click, a hover or a hand
+- Type that only ever mask-rises: no type department, the kit's type library left on the shelf
+- A winner's signature move copied whole (ticket buttons, barcode dissolve): study the mechanism, find this product's own object
 
-- Read `references/data/directors-200.md` only.
-- If sub-agents are available, delegate film research, niche research, or reference breakdown as separate bounded tasks after the user direction is clear.
-- If the user has prior sites or demos in the workspace, review them just enough to identify what must not repeat.
-- If the user starts from a screenshot or live site, inspect that reference first and infer a likely genre, director, and film. Ask for confirmation before committing.
-- When web access is available, research the chosen director and film before finalizing the phase. This is required, not optional.
-- Use external sources to gather richer creative input such as:
-  - film palette and lighting behavior
-  - cinematography patterns, framing logic, and scene rhythm
-  - production design or material cues
-  - director signature techniques
-  - 2-3 premium sites in the same niche
-- Prefer primary or authoritative sources when available, then add secondary analysis only to deepen interpretation.
-- Record the research sources and a short interpretation note. Do not dump plot summaries or generic trivia.
-- If web access is unavailable, say so explicitly and continue with best-effort inference from local libraries. Mark the result as a weaker research pass.
-- If the user provides references, do not copy them whole. Read [references/reference-protocol.md](references/reference-protocol.md) and decompose each reference into traits such as rhythm, materiality, typography, framing, or image treatment.
-- Record the uniqueness audit, shell-ban list, and primary composition family in `decisions.md`.
-- Write `decisions.md`.
+## The kit and the tools
 
-### Phase 2: Storyboard
+`kit/` is infrastructure; copy it into the project and build on it. Its lens and print effects all start
+at zero, and nothing in it is mandatory.
 
-- Read these files one at a time, not all at once:
-  - `references/anti-convergence.md`
-  - `references/data/hero-archetypes.md`
-  - `references/data/narrative-beats.md`
-  - `references/data/section-functions.md`
-  - `references/data/section-archetypes.md`
-- Use `references/data/dna-index.tsv` to cast 2-3 compatible design DNA sources by mood, font direction, shape language, motion, restraint, density, and material richness.
-- Read `references/data/design-dna-db.txt` only when the index points to a promising source and deeper site-level DNA details are needed.
-- Define the site-wide cinematic grammar before designing any individual page. Capture:
-  - page-shell logic
-  - navigation posture
-  - framing rules
-  - density cadence
-  - recurring material or atmospheric layers
-  - composition families that fit the chosen film
-- Make sure the selected page-shell logic and composition family do not violate the shell-ban list from Phase 1.
-- Build a director brief with:
-  - one-sentence visual thesis
-  - 3 signature techniques and their web translation
-  - exact color tokens
-  - typography direction
-  - motion rules
-- Run the prestige calibration from [references/premium-calibration.md](references/premium-calibration.md).
-- For every major page role, write an independent scene thesis before defining shared components. Treat each page as a standalone scene or poster first, then connect the pages into one site.
-- If sub-agents are available, assign distinct page roles to different agents only after the site-wide cinematic grammar is approved.
-- Define one page-level visual thesis per page. This is the single dominant idea that makes the page memorable. Examples: monumental type, sculptural light, editorial framing, void plus glow, object-as-stage. Everything else must support this idea rather than compete with it.
-- Write a hero dominance statement explaining exactly why the hero feels expensive or cinematic without relying on generic gradients or generic app UI.
-- Define one irreplaceable signature composition per page before introducing reusable layout primitives.
-- Map each page to a narrative arc instead of defaulting to `Hero -> Features -> Stats -> CTA`.
-- Apply the anti-convergence system from [references/anti-convergence.md](references/anti-convergence.md) when choosing hero archetypes, narrative arcs, and section archetypes.
-- Write `storyboard.md`.
-- Get user approval before moving to Phase 3 when the task is collaborative or exploratory.
+| File | What it is |
+|---|---|
+| `kit/reel.js`, `reel.css` | The playhead. `[data-scene]` sections with pinned `.frame`s; each scene gets `enter` / `main` / `exit` clips on one master GSAP timeline scrubbed by scroll. Designed cuts via `data-cut`. Reduced-motion stills. Any frame reproducible from one number. No WebGL needed |
+| `kit/looks.js` | The lab: media other than photoreal. Whole-frame looks (ink wash, pencil sketch, pixel, halftone / riso, CRT), cel materials and outlines, liquid and gradient plates, illustrations, photographs and footage as layered 2.5D planes, hand-drawn line boil for DOM and SVG |
+| `kit/stage.js` | The sound stage, when the medium is 3D or needs a canvas. HDR Three.js pipeline, image-based studio lighting, a tweenable camera `rig` and colour `look`, optional bloom and depth of field, quality tiers, WebGL fallback |
+| `kit/props.js` | The prop shop for photoreal sets: seamless backdrop, procedural surface maps, lathed forms, PBR material starting points, dust |
+| `kit/type-fx.js` | The type department: forty-four text performances (impact, flow, 3D, switch, style, and four award moves taken from Awwwards winners) — burst, stamp, split-flap, odometer, tunnel, vertical parallax, liquid fill… Each frame a pure function of progress `p` and time `t`, so scroll scrubs it and a clock renders it frame-exact; real text stays in the DOM. `kit/type-fx.html` is the gallery. Cast one or two per production (`references/type-motion.md`) |
+| `kit/grade.js` | The colour grade for DOM sites: `createGrade({ look, spec })` with the same parameters as `stage.look` (white balance, contrast, saturation, split-tone, lift, fade) plus halation, bloom, grain, vignette, light leak and gate weave. It grades photographs, video and canvases through one SVG filter. Type and controls stay unfiltered. Frames are reproducible from one time value. `kit/grade.html` is the gallery |
+| `kit/plane.js` | The UI plane camera, for scenes whose cast is an interface: `uiPlane(el, { dof })` puts live DOM under CSS perspective with a plain-object pose, `SHOTS.{xmacro,macro,medium,wide}` presets, DOM depth of field and rack focus without WebGL, a `[film]` audit when consecutive shots share scale and diagonal, and UI performance recipes (`appear`, `stipple`, `uiCursor`) |
+| `kit/site-dom.html`, `kit/site.html` | Grey animatics: a site with no canvas, a site with the 3D stage |
+| `kit/app.js` | App mode's rig: hash router with filters, sort and selection in the URL, forced screening states (`?state=`), a frozen clock (`?now=`), keyboard shortcuts with sequences and a shortcut sheet, hints learned through the mouse, j/k row navigation with selection, a peek or modal drawer, a command palette, toasts with undo. No look |
+| `kit/fixtures.js` | Seeded stand-in data with real shape: long-tailed values, noisy series with events, mixed-locale names, working-hours timestamps, edge rows (long, empty, zero, negative, huge, unicode) |
+| `kit/app-shell.html` | Grey animatic of an app: shell, overview, list, record in a peek panel, every state |
+| `scripts/screening.mjs` | Dailies: per-scene stills, contact sheets, mechanical flags (errors, blank frames, dead holds, overflow, chrome over text, hidden focus, and with `--grade grade.json` or a page `grade.js` spec: grade drift, crushed or lifted blacks, clipped whites, saturation and warmth off the grade). Works on any URL, so it can also shoot reference sites |
+| `scripts/grade-from-stills.mjs` | Measures reference stills into a grade: palette with shares, black and white points, chroma range, shadow and highlight warmth, a suggested `look`, and a swatch contact sheet. The stills are reference only and never ship |
+| `scripts/app-screening.mjs` | Dailies for an app: every route × state × viewport × theme, contact sheets, and flags for proportional digits, left-aligned numbers, clipped text, layout shift between loading and loaded, low contrast, small targets, hidden focus and blank states |
+| `scripts/copy-check.mjs` | Checks that every line of client-supplied copy is in the page, with and without JavaScript |
+| `scripts/render-film.mjs` | Renders a tour of a site to MP4: motion blur, grain, parallel workers, a half-size `--preview`, a poster frame, and sound — one track or a sound sheet (music edited at bar lines, ducks, foley cues); `--stills` for dailies, captioned with luminance and near-black share |
+| `scripts/find-footage.mjs` | The archive researcher: searches open libraries (Openverse, Wikimedia Commons, public-domain films on the Internet Archive, NASA; Pixabay / Unsplash with a key) for photographs, footage and sound, lays candidates out with their licences, then trims, compresses and credits the ones you cast |
+| `scripts/generate-image.mjs` | One optional route for generated plates, illustrations and cut-outs (Runware; needs the user's key and their yes) |
 
-### Phase 3: Compiled Spec
+Read `kit/README.md` before using it: it lists the API and the handful of rules that keep frames
+deterministic. The kit is a rig, not a template — two sites built on it should share no visible trait.
+Scripts need Node and `playwright-core` in the project (`npm i -D playwright-core`); rendering needs `ffmpeg`.
 
-- Read [references/implementation-guardrails.md](references/implementation-guardrails.md) before extracting final CSS and JS.
-- Read only the specific entries needed for the approved storyboard:
-  - `references/data/camera-shots-50.md`
-  - `references/data/interaction-effects-50.md`
-  - `references/data/compositions.md`
-  - `references/data/visual-elements.md`
-  - `references/data/background-techniques.md`
-  - `references/data/typography-cinema.md`
-  - `references/data/color-grades.md`
-  - `references/data/font-moods.md`
-  - `references/data/textures.md`
-- Read [references/anti-garbage.md](references/anti-garbage.md) before finalizing the spec.
-- Lock each page's signature composition before deriving shared layout primitives.
-- Shared systems come last. Extract navigation, footer, spacing rhythm, typography, tokens, and utilities only after the page-specific compositions are already clear.
-- If sub-agents are available, delegate disjoint page-spec extraction or implementation tasks, then merge them back under one lead agent review.
-- Respect a strict interaction budget:
-  - maximum 1 heavy interaction per page
-  - maximum 2 attention-seeking reveal patterns per page
-  - the remaining motion must stay subordinate to the page's visual thesis
-- Prefer fewer but stronger gestures over many clever effects.
-- Translate premium cues into surfaces, spacing, type hierarchy, edge treatment, and atmospheric layers, not just animation.
-- Grid and flex may be used as invisible alignment infrastructure, but the visible composition must not collapse into a default card matrix unless the chosen film explicitly supports that logic.
-- Create an entrance map per page before writing section specs.
-- `fadeUp` / `opacity + translateY` may appear at most 2 times per page.
-- Use at least 4 distinct entrance types per page when the page has enough sections to support that range.
-- If a selected interaction-effect id is JS-required under [references/implementation-guardrails.md](references/implementation-guardrails.md), the full JS is mandatory in `compiled-spec.md`.
-- Include the `External Library Decision` block from [references/implementation-guardrails.md](references/implementation-guardrails.md) in `compiled-spec.md`.
-- Run the Phase 3 quality checklist from [references/implementation-guardrails.md](references/implementation-guardrails.md) before treating the spec as complete.
-- Do not invent core interactions or atmospheric devices from memory when an appropriate library entry already exists.
-- For each page, record the selected library source ids for:
-  - camera / reveal behavior
-  - interaction behavior
-  - composition
-  - typography treatment
-  - atmospheric/background technique when used
-- Every heavy interaction, standout reveal, hero atmosphere layer, and signature composition must cite its library entry id in `compiled-spec.md`.
-- If a custom effect is still necessary, mark it explicitly as `Custom`, explain why the library was insufficient, and keep it subordinate to the chosen film language.
-- Extract complete CSS for layout, entrances, and interactions.
-- Include complete JS whenever the selected interaction requires it.
-- Write `compiled-spec.md` as the only source of truth for implementation.
+Other stacks are fine. In React / Next / Astro keep the model — scenes with pinned frames, one scrubbed
+timeline, real DOM copy, any frame reproducible — and port the kit's ideas rather than its files.
 
-### Phase 4: Build And Verify
+## References — read when the stage calls for it
 
-- Read only:
-  - `compiled-spec.md`
-  - `references/anti-garbage.md`
-  - `references/implementation-guardrails.md`
-- Build from the spec without improvising new layout logic.
-- Add reduced-motion handling and responsive behavior without breaking the chosen film language.
-- Verify the output against the storyboard and compiled spec.
-- Use the Screening Room and Post-Screening Adjustments rules from [references/implementation-guardrails.md](references/implementation-guardrails.md) when refining the result after the first build.
+| Read | When |
+|---|---|
+| `references/app-mode.md` | Apps: the shift, casting by the work, the coverage plan and signature set, the lighting plan, density, the accent and status systems, motion by frequency, the eight states, data casting, keyboard, the phone, the app lazy cut |
+| `references/award-reel.md` | What twenty-one Awwwards and fifteen CSS Design Awards winners share and where they differ; the award pass (incl. UX proof); the lazy imitation of award sites |
+| `references/directors.md` | Casting the director; extracting mechanisms; avoiding the obvious pick |
+| `references/film-grammar.md` | Translating any film technique — shot, lens, move, light, cut, colour, time — into web mechanics |
+| `references/looks.md` | Choosing the medium from the film; the asset call; how each medium is built |
+| `references/film-research.md` | Researching any film live: from a description to candidate films, the research rounds, source tiers and tags, known blocked sites, looking at frames and posters, the GRADE / ART / POSTER outputs |
+| `references/art-direction.md` | The film's world and its poster: the ART block and UI map, the dials, poster grammars (Bass, Polish, chirashi, Swiss, painted stack, Criterion, Mondo) for the first frame, OG image, title cards and credits, and fourteen worked examples |
+| `references/grades.md` | Casting the grade: measuring reference stills, the GRADE block, the dials, refused defaults, and fourteen sourced looks in two families: retro / nostalgic (Wong Kar-wai, Demy, Willis, Hou, Malick, Anderson, Mid90s) and modern-future / neon (Blade Runner, 2049, Drive, Neon Demon, Collateral, Enter the Void, Tron: Legacy) |
+| `references/storyboard.md` | Logline, form and structure, shot list, the sequence as a whole; a worked example |
+| `references/production-design.md` | The frame's grammar: composition, typography (Latin and CJK), colour script, material |
+| `references/vfx-threejs.md` | When the medium is photoreal 3D: light, materials, modelling, shaders, lens, performance |
+| `references/editing-and-motion.md` | Scroll as a timeline, the cut catalogue, the audience's part, type choreography, easing, performance |
+| `references/type-motion.md` | Casting a type performance from the forty-four in `kit/type-fx.js`; driving it by scroll or by clock |
+| `references/screening.md` | Reviewing dailies; the director's notes; accessibility, mobile, SEO and performance checks; the delivery report |
 
-## Hard Rules
+## Working with the user
 
-- Preserve the chosen director and film language through color, type, spacing, composition, and motion.
-- Keep the director and film as the primary source of feeling. Use premium calibration to sharpen the result, not to overwrite the chosen cinematic DNA.
-- Keep director names, film titles, chapter markers, calibration jargon, and workflow metadata inside the working files by default, not in the user-facing UI.
-- Do not expose labels such as `chapter`, `director`, `film`, `calibrated`, `report build`, `treatment`, or similar process language in the final interface unless the user explicitly asks for a meta/editorial treatment.
-- Vary section rhythm. Include a mix of spectacle, dense information, and breathing room.
-- Use at least 4 distinct entrance patterns per page when the page has enough sections.
-- Do not let adjacent sections reveal the same way.
-- Include visual structure beyond plain text blocks. Hero sections need at least 3 visual elements. Most other sections need at least 1-2.
-- Make each page legible around one big visual idea. Do not let every section introduce a new concept.
-- Define the site-wide cinematic grammar first, then page scenes, then irreplaceable page compositions, and only then the shared system.
-- When the same user has prior outputs, force uniqueness at the wireframe level. Do not let a new site reuse the previous site's shell with only different colors, copy, or surface styling.
-- Interior pages must feel like new scenes in the same film, not simplified versions of the homepage.
-- Every major page role needs one signature composition that cannot be replaced by a generic product-marketing grid or default template layout.
-- A site style is not valid until the homepage and all major page roles express the chosen director through layout, pacing, hierarchy, and composition, not only through color, typography, or surface styling.
-- Treat grid as infrastructure, not composition. If a section still works unchanged as a generic two-by-two or three-column product grid, the composition is too weak.
-- Design interior pages as standalone scenes first. Shared patterns must support those scenes, not flatten them.
-- Treat restraint as a design tool. High-end work often removes 20 percent of the obvious moves rather than adding 20 percent more detail.
-- Prefer exact tokens and implementation notes over vague adjectives.
-- If web research or a referenced site is unavailable, state that constraint and continue with best-effort inference instead of stalling.
-- Never treat the film itself as a spec sheet, component inventory, or computer workflow. Research the film as cinema, then formalize only the web translation.
+Default is to direct: make the decisions, build, screen, and show the result with the treatment. Stop
+to ask in exactly three cases: the product or scope cannot be inferred; **the asset call** (one message,
+with your recommendation — it is the user's material and the user's money); and anything that would
+publish, deploy or overwrite outside the project. If the user asks for options, or the direction is truly
+open, **pitch**: three treatments, each a different director, medium and logline, one paragraph and one
+signature shot apiece — then build the chosen one. If the user names a director, film or medium, use it;
+if the choice would hurt the product, say so once and offer the mechanism you would keep.
 
-## Anti-Patterns
-
-- Do not output a generic gradient hero with centered copy unless the source film genuinely supports it.
-- Do not watermark the hero or navigation with director names, film titles, chapter labels, or workflow tags masquerading as premium microcopy.
-- Do not reuse the same hover, reveal, or card pattern in every section.
-- Do not let the page become a motion demo or effect sampler.
-- Do not use references as a layout template. Borrow dimensions of quality, not full compositions.
-- Do not let shared containers or reusable cards erase page-specific scene identity.
-- Do not decide the shared component system before page-level compositions are locked.
-- Do not reuse the previous demo's hero posture, navigation posture, section rhythm, or dominant geometry unless the user explicitly requests continuity.
-- Do not read the entire library at once.
-- Do not jump from user request directly to HTML without writing `decisions.md`, `storyboard.md`, and `compiled-spec.md`.
-
-## File Guide
-
-- Use [references/library-index.md](references/library-index.md) to decide which library to load.
-- Use [references/output-templates.md](references/output-templates.md) to structure deliverables.
-- Use [references/premium-calibration.md](references/premium-calibration.md) to decide what makes the page feel expensive without breaking the cinematic concept.
-- Use [references/reference-protocol.md](references/reference-protocol.md) when the user provides visual references but wants to avoid template copying.
-- Use [references/anti-garbage.md](references/anti-garbage.md) as the final filter before coding.
+Respect the stack and content the user already has.

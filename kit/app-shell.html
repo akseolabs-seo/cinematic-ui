@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animatic — app</title>
+<!--
+  Grey animatic: keep the wiring, replace everything visible.
+  THIS IS A RIG, NOT A DESIGN. A shell (navigation, header with search and a palette button), three routes —
+  overview (#/), list (#/items) and a record shown as a non-modal peek beside its list (#/items/3) — and every route
+  renders all eight screening states: ?state=default|loading|empty|filtered|done|error|denied|huge.
+  Wiring worth keeping: filters, sort, page and selection live in the URL; skeletons are sized like the final content
+  (data-region boxes must not move when data lands); empty differs by cause; errors carry a copyable request id and
+  stay inside the region that failed; every verb has a key and shows it (data-key + kbdHints); destructive = undo.
+  Serve over HTTP (ES modules): npx serve, or node scripts/app-screening.mjs which serves it itself.
+-->
+<style>
+  :root { color-scheme: light dark; --bg: #f1f1f1; --panel: #fff; --fg: #1b1b1b; --mid: #5f5f5f; --line: #d2d2d2; --line2: #8a8a8a; --sk: #dedede; --sel: #e3e3e3; --kbd: #e4e4e4; --bar: #9b9b9b; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141414; --panel: #1d1d1d; --fg: #ececec; --mid: #a3a3a3; --line: #3a3a3a; --line2: #6e6e6e; --sk: #2d2d2d; --sel: #2c2c2c; --kbd: #2a2a2a; --bar: #6b6b6b; } }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html[data-still] *, html[data-still] *::before, html[data-still] *::after { transition: none !important; animation: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/20px system-ui, sans-serif; }
+  a { color: inherit; }
+  h1 { font-size: 22px; line-height: 32px; margin: 0; font-weight: 600; }
+  h2 { font-size: 14px; line-height: 20px; margin: 0; font-weight: 600; }
+  h1:focus { outline: none; }
+  :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  [data-row]:focus-visible { outline-offset: -2px; }
+  .meta { color: var(--mid); font-size: 12px; line-height: 20px; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .cut { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; }
+  kbd { font: 11px/1 ui-monospace, Consolas, monospace; padding: 3px 5px; background: var(--kbd); color: var(--mid); border: 1px solid var(--line); }
+  .app-kbd { display: inline-flex; gap: 2px; margin-left: 8px; }
+  .btn { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line2); border-radius: 0; padding: 0 12px; min-height: 32px; min-width: 32px; cursor: pointer; display: inline-flex; align-items: center; }
+  .btn:disabled { color: var(--mid); cursor: default; border-color: var(--line); }
+  select, input[type=search] { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line2); border-radius: 0; min-height: 32px; padding: 0 8px; }
+  .skip { position: absolute; left: -9999px; top: 8px; background: var(--panel); padding: 8px 12px; z-index: 20; }
+  .skip:focus { left: 8px; }
+
+  .app { display: grid; grid-template-columns: 200px minmax(0, 1fr); min-height: 100vh; }
+  .side { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--line); background: var(--panel); padding: 16px 8px; }
+  .brand { font-weight: 600; padding: 0 12px 16px; }
+  .side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .side a { display: flex; align-items: center; justify-content: space-between; min-height: 32px; padding: 0 12px; text-decoration: none; }
+  .side a[aria-current=page] { background: var(--sel); font-weight: 600; }
+  .col { min-width: 0; }
+  .top { position: sticky; top: 0; z-index: 4; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .search { flex: 1; max-width: 420px; display: flex; align-items: center; }
+  .search input { flex: 1; min-width: 0; }
+  main { padding: 24px; }
+  .page-head { display: flex; align-items: baseline; gap: 12px; height: 32px; margin-bottom: 16px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .kpi { height: 104px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); display: grid; grid-template-rows: 16px 40px 16px; gap: 6px; font-size: 12px; line-height: 16px; }
+  .kpi .k-label, .kpi .k-delta { color: var(--mid); }
+  .kpi .k-val { font-size: 28px; line-height: 40px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .chart { height: 300px; padding: 16px; background: var(--panel); border: 1px solid var(--line); margin-bottom: 12px; display: grid; grid-template-rows: 24px 1fr 20px; gap: 8px; }
+  .chart .fig-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .chart svg { width: 100%; height: 100%; display: block; min-height: 0; }
+  .bars rect { fill: var(--bar); } .bars rect.hi { fill: var(--fg); }
+  .axis { display: flex; justify-content: space-between; }
+  .chart .note { grid-row: 2 / 4; border: 0; padding: 0; align-content: center; }
+  .panel { background: var(--panel); border: 1px solid var(--line); }
+  .panel > h2 { padding: 8px 12px; height: 36px; border-bottom: 1px solid var(--line); }
+
+  .toolbar { display: flex; align-items: center; gap: 12px; height: 48px; }
+  .fld { display: flex; align-items: center; gap: 8px; }
+  .bulk { display: flex; align-items: center; gap: 8px; }
+  .tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; min-width: 900px; }
+  th, td { height: 40px; padding: 0 12px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; }
+  th { height: 40px; font-size: 12px; color: var(--mid); font-weight: 600; padding: 0 4px; }
+  th.num { text-align: right; } th.c-sel, td.c-sel { padding: 0; }
+  td.num, th.num { padding-right: 12px; }
+  td a { display: inline-flex; align-items: center; min-height: 32px; }
+  .sortbtn { font: inherit; color: inherit; background: none; border: 0; min-height: 32px; width: 100%; padding: 0 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  th.num .sortbtn { justify-content: flex-end; }
+  th:not([aria-sort=ascending]):not([aria-sort=descending]) .arr { visibility: hidden; }
+  .chk { display: flex; align-items: center; justify-content: center; width: 44px; height: 40px; }
+  input[type=checkbox] { accent-color: var(--fg); }
+  .chk input { width: 24px; height: 24px; margin: 0; }
+  tbody tr[data-row] { scroll-margin-block: 64px 16px; }
+  tbody tr[aria-selected=true] { background: var(--sel); }
+  tbody tr[aria-current=true] td:nth-child(2) { font-weight: 600; }
+  .pager { display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 12px; background: var(--panel); border: 1px solid var(--line); border-top: 0; }
+  .sk { display: inline-block; height: 12px; background: var(--sk); vertical-align: middle; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .5; } }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+  .tablewrap .sk { max-width: 100%; }
+
+  .note { padding: 24px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 8px; justify-items: start; max-width: 640px; }
+  .note p { margin: 0; color: var(--mid); } .note .reqid { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--fg); }
+  code { font: 12px ui-monospace, Consolas, monospace; background: var(--kbd); padding: 3px 6px; user-select: all; }
+
+  .peek { position: fixed; top: 56px; right: 0; bottom: 0; width: min(380px, 100%); z-index: 5; background: var(--panel); border-left: 1px solid var(--line2); padding: 16px; display: grid; grid-template-rows: 40px 1fr 48px; gap: 8px; }
+  .peek-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .peek-head h2 { font-size: 18px; line-height: 28px; min-width: 0; }
+  .kv { margin: 0; display: grid; align-content: start; }
+  .kv div { display: grid; grid-template-columns: 110px minmax(0, 1fr); height: 36px; align-items: center; border-bottom: 1px solid var(--line); }
+  .kv dt { color: var(--mid); font-size: 12px; } .kv dd { margin: 0; }
+  .peek-foot { display: flex; align-items: center; gap: 8px; }
+
+  .app-palette, .app-sheet { padding: 0; border: 1px solid var(--line2); background: var(--panel); color: var(--fg); width: min(520px, calc(100vw - 32px)); }
+  .app-palette { margin-top: 12vh; }
+  .app-palette::backdrop, .app-sheet::backdrop { background: rgb(0 0 0 / .35); }
+  .app-palette input { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--line); min-height: 44px; padding: 0 16px; background: transparent; }
+  .app-palette input:focus-visible { outline-offset: -2px; }
+  .app-palette ul { list-style: none; margin: 0; padding: 4px 0; max-height: 50vh; overflow: auto; }
+  .app-palette li { padding: 8px 16px; cursor: pointer; } .app-palette li[aria-selected=true] { background: var(--sel); }
+  .app-palette p { margin: 0; padding: 8px 16px; border-top: 1px solid var(--line); color: var(--mid); font-size: 12px; }
+  .app-sheet { padding: 16px 20px; } .app-sheet h2 { margin-bottom: 8px; } .app-sheet h3 { font-size: 12px; color: var(--mid); margin: 12px 0 4px; }
+  .app-sheet li { padding: 4px 0; } .app-sheet form { margin-top: 12px; }
+  .app-toasts { position: fixed; right: 16px; bottom: 16px; z-index: 30; display: grid; gap: 8px; max-width: min(360px, calc(100vw - 32px)); }
+  .app-toast { background: var(--fg); color: var(--bg); padding: 10px 12px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .app-toast button { font: inherit; color: inherit; background: none; border: 1px solid currentColor; min-height: 32px; padding: 0 10px; cursor: pointer; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px 12px; display: flex; align-items: center; gap: 12px; }
+    .brand { padding: 0; } .side ul { display: flex; } .side .app-kbd { display: none; }
+    .top { padding: 0 12px; } main { padding: 16px 12px; }
+    .wide { display: none; } table { min-width: 440px; }
+    .peek { top: 0; width: 100%; }
+    .chart { height: 260px; } .bulk .meta { display: none; }
+    .toolbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 4px 0; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#view" data-skip>Skip to content</a>
+<div class="app">
+  <nav class="side" aria-label="Main" data-region="nav">
+    <div class="brand">Animatic</div>
+    <ul>
+      <li><a href="#/" data-nav="/" data-key="g o">Overview</a></li>
+      <li><a href="#/items" data-nav="/items" data-key="g i">Items</a></li>
+    </ul>
+  </nav>
+  <div class="col">
+    <header class="top" data-region="header">
+      <label class="search" data-key="/"><input id="q" type="search" name="q" placeholder="Search items" aria-label="Search items" autocomplete="off"></label>
+      <span class="grow"></span>
+      <button type="button" class="btn" id="open-palette" data-key="mod+k">Commands</button>
+    </header>
+    <main id="view" data-region="main"></main>
+  </div>
+</div>
+
+<script type="module">
+  import { createApp, keys, kbdHints, listNav, drawer, palette, toast, esc, STATES } from './app.js';
+  import { rng, lognormal, series, people, companies, times, edge, money, num, pct, dur } from './fixtures.js';
+
+  const DAY = 864e5, PAGE = 12, PAGE_HUGE = 100;
+  const usd0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const big = (n) => (n == null ? '—' : Math.abs(n) >= 1e7 ? '$' + num(n, { compact: true, digits: 1 }) : usd0.format(n));
+  const dFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+  const dShort = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const STATUS = { paid: '●', pending: '◐', failed: '✕', refunded: '↩', draft: '○' };
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+  const qs = (o) => { const sp = new URLSearchParams(); for (const [k, v] of Object.entries(o)) if (v !== '' && v != null) sp.set(k, v); const s = sp.toString(); return s ? '?' + s : ''; };
+
+  // ---- data: seeded, skewed, with ugly rows ----
+  const archived = new Set(), memo = new Map();
+  function items(ctx) {
+    const huge = ctx.state === 'huge', key = `${ctx.seed}:${huge}:${+ctx.now}`;
+    if (!memo.has(key)) {
+      const n = huge ? 5000 : 86, r = rng(ctx.seed * 101 + 3);
+      const when = times(r, n, { now: ctx.now, spanDays: huge ? 400 : 60 });
+      const who = people(r, n, { locales: ['en', 'en', 'en', 'zh-Hant', 'ja', 'es', 'de', 'ar'], long: 0.05 });
+      const co = companies(r, Math.min(n, 40));
+      const rows = when.map((created, i) => ({
+        id: i + 1, ref: 'INV-' + (10000 + i), customer: who[i].name, email: who[i].email, company: r.pick(co),
+        status: r.weighted([['paid', 58], ['pending', 18], ['failed', 7], ['refunded', 6], ['draft', 11]]),
+        amount: Math.round(lognormal(r, huge ? 9000 : 180, 1.1) * 100) / 100, margin: Math.round((0.32 + 0.18 * r.gauss()) * 1000) / 1000,
+        closeMs: Math.round(lognormal(r, 5 * 36e5, 1.3)), created,
+      }));
+      // edge rows are for the huge state; the default state keeps only the domain's real ugliness
+      memo.set(key, huge ? edge(rows, r, { fields: ['customer', 'company', 'amount', 'margin', 'closeMs'], long: 0.12, huge: 0.08, negative: 0.06 }) : rows);
+    }
+    return memo.get(key).filter((i) => !archived.has(i.id));
+  }
+
+  // ---- small parts ----
+  const btn = (act, label, extra = '') => `<button type="button" class="btn" data-act="${act}"${extra}>${esc(label)}</button>`;
+  const note = (o) => `<section class="note" data-region="state"${o.role ? ` role="${o.role}"` : ''}><h2>${esc(o.title)}</h2><p>${o.body}</p>${o.extra || ''}<div class="row">${o.actions || ''}</div></section>`;
+  const reqId = (ctx) => { const r = rng(ctx.seed + 99); return 'req_' + Array.from({ length: 12 }, () => '0123456789abcdef'[r.int(0, 15)]).join(''); };
+  const errorNote = (ctx, what) => note({ role: 'alert', title: `Couldn’t load ${what}`, body: 'The server took too long to answer. Nothing was changed. Try again, or send this request ID to support.',
+    extra: `<p class="reqid"><code id="reqid">${reqId(ctx)}</code>${btn('copy-id', 'Copy request ID')}</p>`, actions: btn('retry', 'Try again') });
+  const deniedNote = (what, who) => note({ title: `You don’t have access to ${what}`, body: `${who} can grant it. Ask them to add you to the Finance group.`, actions: btn('request', 'Request access') });
+  const sk = (w) => `<span class="sk" style="width:${w}"></span>`;
+  const WIDTHS = ['70%', '55%', '82%', '48%', '64%', '76%'];
+
+  // ---- overview ----
+  function overviewData(ctx) {
+    const huge = ctx.state === 'huge', r = rng(ctx.seed * 13 + 5), k = huge ? 1e4 : 1;
+    const s = series(r, { points: 30, start: +ctx.now - 29 * DAY, step: DAY, base: 4200 * k, trend: 0.25, noise: 0.16, season: { period: 7, amp: 0.22 },
+      events: [{ at: 19, kind: 'spike', size: 1.7, decay: 2 }, { at: 11, kind: 'drop', size: 0.75, decay: 1.5 }] });
+    const sum = (a, b) => s.slice(a, b).reduce((x, p) => x + p.v, 0), list = items(ctx);
+    const amounts = list.map((i) => i.amount).filter((v) => v != null).sort((a, b) => a - b);
+    return { s, total: sum(0, 30), delta: sum(23, 30) / sum(16, 23) - 1, list, median: amounts[amounts.length >> 1], failed: list.filter((i) => i.status === 'failed').length / Math.max(1, list.length),
+      max: Math.max(...s.map((p) => p.v)), mean: sum(0, 30) / 30 };
+  }
+  const kpi = (label, val, sub, title) => `<div class="kpi"><div class="k-label">${label}</div><div class="k-val cut"${title ? ` title="${esc(title)}"` : ''}>${val}</div><div class="k-delta">${sub}</div></div>`;
+  function kpisHtml(d) {
+    if (!d) return ['Revenue, 30 days', 'Items', 'Median amount', 'Failed share'].map((l) => kpi(l, sk('60%'), sk('45%'))).join('');
+    return kpi('Revenue, 30 days', big(d.total), `${d.delta >= 0 ? '▲' : '▼'} ${pct(Math.abs(d.delta))} vs prior 7 days`, money(d.total))
+      + kpi('Items', num(d.list.length), `${num(archived.size)} archived`)
+      + kpi('Median amount', big(d.median), 'per item', money(d.median))
+      + kpi('Failed share', pct(d.failed), 'of all items');
+  }
+  function chartHtml(ctx, d, mode) {
+    const head = (meta) => `<div class="fig-head"><h2>Daily revenue</h2><span class="meta">${meta}</span></div>`;
+    if (mode === 'loading') return `<section class="chart" data-region="chart" aria-busy="true">${head(sk('120px'))}<span class="sk" style="width:100%;height:100%"></span><div class="axis">${sk('48px')}${sk('48px')}</div></section>`;
+    if (mode === 'error') return `<section class="chart" data-region="chart">${head('')}${errorNote(ctx, 'the revenue chart')}</section>`;
+    if (mode === 'denied') return `<section class="chart" data-region="chart">${head('')}${deniedNote('revenue', 'The Finance group owner')}</section>`;
+    const W = 600, H = 200, bw = W / d.s.length;
+    const peak = d.s.reduce((a, p) => (p.v > a.v ? p : a));
+    const bars = d.s.map((p, i) => { const h = Math.max(1, (p.v / d.max) * H); return `<rect class="${p.v > d.mean * 1.7 ? 'hi' : ''}" x="${(i * bw + 2).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${h.toFixed(1)}"><title>${dShort.format(p.t)}: ${money(p.v)}</title></rect>`; }).join('');
+    return `<section class="chart" data-region="chart">${head(`Peak ${big(peak.v)} on ${dShort.format(peak.t)}`)}
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Daily revenue for 30 days, from ${big(Math.min(...d.s.map((p) => p.v)))} to ${big(d.max)}"><g class="bars">${bars}</g></svg>
+      <div class="axis meta"><span>${dShort.format(d.s[0].t)}</span><span>${dShort.format(d.s[d.s.length - 1].t)}</span></div></section>`;
+  }
+  const colgroup = (cols) => `<colgroup>${cols.map((c) => `<col${c.cls ? ` class="${c.cls}"` : ''}${c.w ? ` style="width:${c.w}px"` : ''}>`).join('')}</colgroup>`;
+  function recentHtml(ctx, d) {
+    const cols = [{ w: 110 }, {}, { w: 130 }, { w: 130, cls: 'wide' }];
+    const heads = `<tr><th scope="col" style="padding-left:12px">Ref</th><th scope="col" style="padding-left:12px">Customer</th><th scope="col" class="num">Amount</th><th scope="col" class="wide" style="padding-left:12px">Created</th></tr>`;
+    const rows = d ? d.list.slice(-5).reverse().map((i) => `<tr><td><a href="#/items/${i.id}">${esc(i.ref)}</a></td><td><span class="cut" dir="auto" title="${esc(i.customer ?? '')}">${esc(i.customer ?? '—')}</span></td>`
+        + `<td class="num"><span class="cut" title="${esc(money(i.amount))}">${money(i.amount)}</span></td><td class="wide">${dFmt.format(i.created)}</td></tr>`).join('')
+      : WIDTHS.slice(0, 5).map((w) => `<tr aria-hidden="true"><td>${sk('70%')}</td><td>${sk(w)}</td><td class="num">${sk('60%')}</td><td class="wide">${sk('70%')}</td></tr>`).join('');
+    return `<section class="panel" data-region="recent"${d ? '' : ' aria-busy="true"'}><h2>Latest items</h2><div class="tablewrap" style="border:0" tabindex="0" role="region" aria-label="Latest items"><table style="min-width:0">${colgroup(cols)}<thead>${heads}</thead><tbody>${rows}</tbody></table></div></section>`;
+  }
+  function overview(ctx) {
+    const s = ctx.state, head = '<div class="page-head"><h1>Overview</h1></div>';
+    if (s === 'empty') return head + note({ title: 'No orders yet', body: 'Revenue, item counts and the latest activity will appear here once your first order comes in.', actions: btn('create', 'Create order') });
+    if (s === 'filtered') return head + note({ role: 'status', title: 'Nothing matches these filters', body: 'Range is “Oct 1 – Oct 3” and Channel is “Wholesale”. No orders were placed in that window.', actions: btn('clear', 'Clear filters') });
+    if (s === 'done') return head + note({ role: 'status', title: 'All clear', body: 'Nothing needs your attention.' });
+    if (s === 'loading') return head + `<div class="kpis" data-region="kpis" aria-busy="true">${kpisHtml(null)}</div>` + chartHtml(ctx, null, 'loading') + recentHtml(ctx, null);
+    const d = overviewData(ctx);
+    return head + `<div class="kpis" data-region="kpis">${kpisHtml(d)}</div>` + chartHtml(ctx, d, s === 'error' ? 'error' : s === 'denied' ? 'denied' : 'ok') + recentHtml(ctx, d);
+  }
+
+  // ---- list ----
+  const COLS = [
+    { k: 'ref', label: 'Ref', w: 100 }, { k: 'customer', label: 'Customer' }, { k: 'company', label: 'Company', w: 150, wide: 1 }, { k: 'status', label: 'Status', w: 96 },
+    { k: 'amount', label: 'Amount', w: 132, num: 1 }, { k: 'margin', label: 'Margin', w: 84, num: 1, wide: 1 }, { k: 'closeMs', label: 'Time to close', w: 110, num: 1, wide: 1 }, { k: 'created', label: 'Created', w: 124, wide: 1 },
+  ];
+  const cell = (c, i) => {
+    const v = i[c.k], wide = c.wide ? ' wide' : '';
+    if (c.k === 'ref') return `<td><a href="#/items/${i.id}" data-open="${i.id}" data-focus-key="open-${i.id}">${esc(i.ref)}</a></td>`;
+    if (c.k === 'status') return `<td><span aria-hidden="true">${STATUS[v]}</span> ${cap(v)}</td>`;
+    const text = c.k === 'amount' ? money(v) : c.k === 'margin' ? pct(v) : c.k === 'closeMs' ? dur(v) : c.k === 'created' ? dFmt.format(v) : (v ?? '—');
+    return `<td class="${c.num ? 'num' : ''}${wide}"><span class="cut"${c.k === 'customer' || c.k === 'company' ? ' dir="auto"' : ''} title="${esc(text)}">${esc(text)}</span></td>`;
+  };
+  const SELCOL = `<th scope="col" class="c-sel"><label class="chk"><input type="checkbox" data-all aria-label="Select all rows on this page"></label></th>`;
+  function head(sort) {
+    const key = sort.replace(/^-/, ''), dir = sort[0] === '-' ? 'descending' : 'ascending';
+    return `<tr>${SELCOL}${COLS.map((c) => `<th scope="col" class="${c.num ? 'num' : ''}${c.wide ? ' wide' : ''}" aria-sort="${c.k === key ? dir : 'none'}"><button type="button" class="sortbtn" data-sort="${c.k}" data-focus-key="sort-${c.k}">${c.label}<span class="arr" aria-hidden="true">${dir === 'descending' ? '▼' : '▲'}</span></button></th>`).join('')}</tr>`;
+  }
+  const tableCols = colgroup([{ w: 44 }, ...COLS.map((c) => ({ w: c.w, cls: c.wide ? 'wide' : '' }))]);
+  const gridRows = (list) => list.map((i) => `<tr data-row data-id="${i.id}" tabindex="-1" aria-selected="false"><td class="c-sel"><label class="chk"><input type="checkbox" data-select aria-label="Select ${esc(i.ref)}"></label></td>${COLS.map((c) => cell(c, i)).join('')}</tr>`).join('');
+  const skRows = (n) => Array.from({ length: n }, (_, r) => `<tr aria-hidden="true"><td class="c-sel"><span class="chk"></span></td>${COLS.map((c, j) => `<td class="${c.num ? 'num' : ''}${c.wide ? ' wide' : ''}">${sk(WIDTHS[(r + j) % 6])}</td>`).join('')}</tr>`).join('');
+  const bulkHtml = (n) => n ? `<span>${n} selected</span>${btn('archive', 'Archive', ' data-key="e"')}${btn('clear-sel', 'Clear selection')}` : '<span class="meta">x selects a row · ? lists shortcuts</span>';
+  const toolbar = (f, disabled) => `<div class="toolbar" data-region="filters"><label class="fld">Status <select name="status" data-focus-key="status"${disabled ? ' disabled' : ''}>`
+    + ['', 'paid', 'pending', 'failed', 'refunded', 'draft'].map((s) => `<option value="${s}"${f.status === s ? ' selected' : ''}>${s ? cap(s) : 'All'}</option>`).join('')
+    + `</select></label>${btn('clear', 'Clear filters', f.status || f.q && !disabled ? '' : ' disabled')}<span class="grow"></span><div class="bulk" id="bulk" role="status">${bulkHtml(0)}</div></div>`;
+  const getSort = (ctx) => (/^-?(ref|customer|company|status|amount|margin|closeMs|created)$/.test(ctx.query.sort || '') ? ctx.query.sort : 'ref');
+  function sorted(list, sort) {
+    const k = sort.replace(/^-/, ''), dir = sort[0] === '-' ? -1 : 1;
+    return list.slice().sort((a, b) => {
+      const x = a[k], y = b[k];
+      if (x == null || y == null) return x == null && y == null ? 0 : x == null ? 1 : -1;      // empty values sink, whichever way it sorts
+      return dir * (typeof x === 'string' ? x.localeCompare(y) : +x - +y);
+    });
+  }
+  function peekHtml(ctx, list, loading) {
+    if (!ctx.params.id) return '';
+    const it = loading ? null : items(ctx).find((i) => i.id === Number(ctx.params.id)) || list.find((i) => i.id === Number(ctx.params.id));
+    const close = '<button type="button" class="btn" data-peek="close">Close</button>';
+    if (!loading && !it) return `<aside class="peek" data-region="peek" aria-labelledby="peek-t" hidden><div class="peek-head"><h2 id="peek-t">Item not found</h2>${close}</div><p class="meta">No item with id ${esc(ctx.params.id)}. It may have been archived.</p></aside>`;
+    const kv = (l, v, t) => `<div><dt>${l}</dt><dd>${loading ? sk('60%') : `<span class="cut" dir="auto" title="${esc(t ?? v)}">${esc(v)}</span>`}</dd></div>`;
+    return `<aside class="peek" data-region="peek" aria-labelledby="peek-t" hidden${loading ? ' aria-busy="true"' : ''}>
+      <div class="peek-head"><h2 id="peek-t" class="cut" title="${esc(it?.ref ?? '')}">${loading ? 'Item' : esc(it.ref)}</h2>${close}</div>
+      <dl class="kv">${kv('Customer', it?.customer ?? '—')}${kv('Company', it?.company ?? '—')}${kv('Email', it?.email ?? '—')}${kv('Status', it ? `${STATUS[it.status]} ${cap(it.status)}` : '')}${kv('Amount', it ? money(it.amount) : '')}${kv('Margin', it ? pct(it.margin) : '')}${kv('Time to close', it ? dur(it.closeMs) : '')}${kv('Created', it ? dFmt.format(it.created) : '')}</dl>
+      <div class="peek-foot">${loading ? '<button type="button" class="btn" disabled>Archive</button>' : `<button type="button" class="btn" data-peek="archive">Archive</button>`}</div></aside>`;
+  }
+  function itemsView(ctx) {
+    const s = ctx.state, h = '<div class="page-head"><h1>Items</h1>', sort = getSort(ctx);
+    let f = { q: ctx.query.q || '', status: ctx.query.status || '' };
+    if (s === 'filtered' && !f.q && !f.status) f = { q: 'xk-4471', status: 'failed' };
+    const pageSize = s === 'huge' ? PAGE_HUGE : PAGE;
+    if (s === 'empty') return h + '</div>' + note({ title: 'No items yet', body: 'Items you create or import are listed here with their status, amount and time to close.', actions: btn('create', 'Create item') });
+    if (s === 'done') return h + '</div>' + note({ role: 'status', title: 'All caught up', body: 'No items are waiting for review.' });
+    if (s === 'denied') return h + '</div>' + note({ title: 'You don’t have access to Items', body: 'The Operations lead can grant it. Ask them to add you to the Operations group.', actions: btn('request', 'Request access') });
+    const loading = s === 'loading';
+    const table = (rows, meta, pager) => `<div data-region="table"${loading ? ' aria-busy="true"' : ''}><div class="tablewrap" tabindex="0" role="region" aria-label="Items table"><table class="grid" role="grid" data-grid>${tableCols}<thead>${head(sort)}</thead><tbody>${rows}</tbody></table></div>${pager}</div>`;
+    if (loading) {
+      return h + `<span class="meta">${sk('80px')}</span></div>` + toolbar(f, true)
+        + table(skRows(PAGE), '', `<div class="pager"><span class="meta">${sk('120px')}</span><span class="row">${btn('', 'Previous', ' disabled')}${btn('', 'Next', ' disabled')}</span></div>`) + peekHtml(ctx, [], true);
+    }
+    let list = items(ctx);
+    const total = list.length;
+    const needle = f.q.toLowerCase();
+    list = list.filter((i) => (!f.status || i.status === f.status) && (!needle || `${i.ref} ${i.customer ?? ''} ${i.company ?? ''}`.toLowerCase().includes(needle)));
+    const head1 = h + `<span class="meta" role="status">${num(list.length)} ${list.length === total ? 'items' : `of ${num(total)} items`}</span></div>` + toolbar(f, false);
+    if (s === 'error') return head1 + `<div data-region="table">${errorNote(ctx, 'items')}</div>`;
+    if (!list.length) {
+      const named = [f.status && `Status is “${cap(f.status)}”`, f.q && `Search is “${esc(f.q)}”`].filter(Boolean);
+      return head1 + `<div data-region="table">${note({ role: 'status', title: 'No items match these filters', body: `${named.join(' and ')}. Nothing is lost; clear the filters to see all ${num(total)} items.`, actions: btn('clear', 'Clear filters') })}</div>`;
+    }
+    list = sorted(list, sort);
+    const pages = Math.ceil(list.length / pageSize), page = Math.min(pages, Math.max(1, Number(ctx.query.page) || 1)), from = (page - 1) * pageSize;
+    const shown = list.slice(from, from + pageSize);
+    return head1 + table(gridRows(shown), '', `<div class="pager"><span class="meta" role="status">Showing ${num(from + 1)}–${num(from + shown.length)} of ${num(list.length)}</span><span class="row">`
+      + `${btn('', 'Previous', ` data-page="${page - 1}"${page > 1 ? '' : ' disabled'}`)}${btn('', 'Next', ` data-page="${page + 1}"${page < pages ? '' : ' disabled'}`)}</span></div>`) + peekHtml(ctx, list, false);
+  }
+
+  // ---- wiring ----
+  const $ = (s) => document.querySelector(s);
+  const search = $('#q');
+  function archive(ids) {
+    if (!ids.length) return;
+    const n = ids.length;
+    ids.forEach((i) => archived.add(Number(i)));
+    toast(`${n} item${n > 1 ? 's' : ''} archived`, { undo: () => { ids.forEach((i) => archived.delete(Number(i))); app.refresh(); } });
+  }
+  // events every view shares: state buttons, clear filters, copy request id, nav sync
+  function wrap(view) {
+    return async (ctx) => {
+      ctx.onMount((root) => {
+        const here = ctx.route.path;
+        document.querySelectorAll('[data-nav]').forEach((a) => { const on = a.dataset.nav === '/' ? here === '/' : here.startsWith(a.dataset.nav); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
+        search.value = ctx.query.q || (ctx.state === 'filtered' && here.startsWith('/items') ? 'xk-4471' : '');
+        const click = (e) => {
+          const b = e.target.closest('[data-act]');
+          if (!b) return;
+          const act = b.dataset.act;
+          if (act === 'retry') ctx.refresh();
+          else if (act === 'clear') { const q = { ...app.route.query }; ['status', 'q', 'page', 'sel'].forEach((k) => delete q[k]); if (ctx.state === 'filtered') delete q.state; app.navigate(here.startsWith('/items') ? '/items' : '/', q); }
+          else if (act === 'copy-id') {
+            const code = root.querySelector('#reqid');
+            navigator.clipboard?.writeText(code.textContent).then(() => toast('Request ID copied'), () => fallback(code)) ?? fallback(code);
+          } else if (act === 'create') toast('Creating is not wired in this animatic');
+          else if (act === 'request') toast('Access requested');
+        };
+        const fallback = (code) => { const r = document.createRange(); r.selectNodeContents(code); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Request ID selected: press Ctrl+C'); };
+        root.addEventListener('click', click);
+        return () => root.removeEventListener('click', click);
+      });
+      return view(ctx);
+    };
+  }
+  function mountItems(ctx, root) {
+    const un = [], grid = root.querySelector('[data-grid]'), bulk = root.querySelector('#bulk');
+    const live = grid && !grid.querySelector('tr[aria-hidden]');
+    let nav = null;
+    const showBulk = (ids) => {
+      if (bulk) { bulk.innerHTML = bulkHtml(ids.length); kbdHints(bulk); }
+      const all = root.querySelector('[data-all]');
+      if (all) { const rows = grid.querySelectorAll('[data-row]').length; all.checked = ids.length > 0 && ids.length >= rows; all.indeterminate = ids.length > 0 && ids.length < rows; }
+    };
+    if (live) {
+      nav = listNav(grid, {
+        selection: (ctx.query.sel || '').split(',').filter(Boolean),
+        onOpen: (id) => app.navigate(`/items/${id}`, app.route.query),
+        onSelect: (ids) => { ctx.setQuery({ sel: ids.join(',') }, { replace: true, render: false }); showBulk(ids); },
+      });
+      showBulk(nav.selected());
+      un.push(nav.destroy);
+    }
+    const click = (e) => {
+      const t = e.target;
+      if (t.closest('[data-sort]')) { const k = t.closest('[data-sort]').dataset.sort, cur = getSort(ctx); ctx.setQuery({ sort: cur === k ? '-' + k : k, page: '' }, { replace: true }); }
+      else if (t.closest('[data-page]') && !t.closest('[data-page]').disabled) ctx.setQuery({ page: t.closest('[data-page]').dataset.page }, { replace: true });
+      else if (t.closest('[data-act=archive]') && nav) { const ids = nav.selected(); ctx.setQuery({ sel: '' }, { replace: true, render: false }); archive(ids); app.refresh(); }
+      else if (t.closest('[data-act=clear-sel]') && nav) nav.clear();
+      else if (t.closest('a[data-open]') && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button)) { e.preventDefault(); app.navigate(`/items/${t.closest('a').dataset.open}`, app.route.query); }
+    };
+    const change = (e) => {
+      if (e.target.name === 'status') ctx.setQuery({ status: e.target.value, page: '', sel: '' }, { replace: true });
+      else if (e.target.matches('[data-all]') && nav) e.target.checked ? nav.selectAll() : nav.clear();
+    };
+    root.addEventListener('click', click); root.addEventListener('change', change);
+    un.push(() => { root.removeEventListener('click', click); root.removeEventListener('change', change); });
+    const page = (d) => () => { const b = root.querySelector(`[data-page]:not([disabled])[data-page="${(Number(ctx.query.page) || 1) + d}"]`); if (b) b.click(); else return false; };
+    un.push(keys({
+      e: { run: () => { if (!nav?.selected().length) return false; archive(nav.selected()); ctx.setQuery({ sel: '' }, { replace: true, render: false }); app.refresh(); }, label: 'Archive selected', group: 'List' },
+      ']': { run: page(1), label: 'Next page', group: 'List' }, '[': { run: page(-1), label: 'Previous page', group: 'List' },
+    }));
+    const aside = root.querySelector('.peek');
+    if (aside) {
+      const d = drawer(aside, { modal: matchMedia('(max-width: 760px)').matches, onClose: () => app.navigate('/items', app.route.query) });
+      d.open();
+      aside.querySelector('[data-peek=close]').addEventListener('click', () => d.close());
+      aside.querySelector('[data-peek=archive]')?.addEventListener('click', () => { archive([ctx.params.id]); app.navigate('/items', { ...app.route.query, sel: '' }); });
+      un.push(d.destroy);
+    }
+    return () => un.forEach((f) => f());
+  }
+  const overviewRoute = wrap(overview);
+  const listRoute = wrap((ctx) => { ctx.onMount((root) => mountItems(ctx, root)); return itemsView(ctx); });   // one function for /items and /items/:id: opening a peek keeps scroll and focus
+  const app = createApp({ root: '#view', routes: { '/': overviewRoute, '/items': listRoute, '/items/:id': listRoute } });
+
+  kbdHints();
+  document.querySelector('[data-skip]').addEventListener('click', (e) => { e.preventDefault(); const v = $('#view'); v.setAttribute('tabindex', '-1'); v.focus(); });
+  const pal = palette([
+    { label: 'Go to Overview', key: 'g o', run: () => app.navigate('/') },
+    { label: 'Go to Items', key: 'g i', run: () => app.navigate('/items') },
+    { label: 'Search items', key: '/', keywords: 'find filter', run: () => { search.focus(); search.select(); } },
+    ...['paid', 'pending', 'failed', 'refunded', 'draft'].map((s) => ({ label: `Filter items: ${cap(s)}`, keywords: 'status', run: () => app.navigate('/items', { status: s }) })),
+    { label: 'Clear filters', keywords: 'reset', run: () => app.navigate('/items') },
+    ...STATES.map((s) => ({ label: `Show ${s} state`, keywords: 'screening state', run: () => app.setState(s) })),
+  ]);
+  $('#open-palette').addEventListener('click', () => pal.open());
+  keys({
+    '/': { run: () => { search.focus(); search.select(); }, label: 'Search', group: 'Go' },
+    'g o': { run: () => app.navigate('/'), label: 'Go to Overview', group: 'Go' },
+    'g i': { run: () => app.navigate('/items'), label: 'Go to Items', group: 'Go' },
+    Escape: { run: () => { if (document.activeElement !== search) return false; search.blur(); }, label: 'Leave search', group: 'Go' },
+  });
+  let t = 0;
+  const apply = () => { const q = search.value.trim(); if (app.route.path.startsWith('/items')) app.setQuery({ q, page: '', sel: '' }, { replace: true }); else if (q) app.navigate('/items', { q }); };
+  search.addEventListener('input', () => { clearTimeout(t); if (app.route.path.startsWith('/items')) t = setTimeout(apply, 150); });
+  search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); apply(); } });
+</script>
+</body>
+</html>

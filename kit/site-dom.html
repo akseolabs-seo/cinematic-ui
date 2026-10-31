@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animatic — no stage (type, shape, image)</title>
+<!--
+  THIS IS AN ANIMATIC, NOT A DESIGN.
+  The same playhead as site.html with NO canvas and NO Three.js: a film made of type, flat shapes and one
+  image slot. Many films should be shot this way (graphic, typographic, drawn, photographed). It shows:
+  a title card, a lateral rail, a wipe, an image entering as a window, a flow scene, a final card.
+  Keep the wiring, replace everything you can see. Add stage.js only if the medium calls for it.
+-->
+<link rel="stylesheet" href="./reel.css">
+<style>
+  :root { --paper: #e9e6df; --ink: #1c1b19; --mark: #8a8780; }
+  body { background: var(--paper); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+  .frame { display: grid; padding: 6vmin; padding-bottom: calc(6vmin + var(--safe-bottom)); box-sizing: border-box; }
+  h1, h2 { margin: 0; font-weight: 600; letter-spacing: -.02em; line-height: .95; }
+  h1 { font-size: clamp(3rem, 13vw, 13rem); }
+  h2 { font-size: clamp(2rem, 6vw, 6rem); }
+  .line { display: block; overflow: clip; } .line > span { display: block; }
+  .title .frame { align-content: center; }
+  .bar { position: absolute; left: 6vmin; right: 6vmin; top: 50%; height: 2px; background: var(--ink); transform-origin: 0 50%; }
+  .rail .frame { align-content: center; overflow: clip; }
+  .track { display: flex; gap: 6vw; width: max-content; }
+  .card { width: 34vw; min-width: 16rem; aspect-ratio: 4 / 5; border: 1.5px solid var(--ink); display: grid; align-content: end; padding: 1.2rem; box-sizing: border-box; }
+  .card b { font-size: 3rem; line-height: 1; }
+  .turn .frame { background: var(--ink); color: var(--paper); align-content: end; }
+  .window { position: absolute; inset: 14vh 10vw 22vh 44vw; background: repeating-linear-gradient(45deg, #55524c 0 12px, #4a4742 12px 24px); display: grid; place-items: center; color: #d8d4cb; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; }
+  .read .frame { align-content: center; gap: 2rem; padding-block: 16vh; max-width: 70rem; }
+  .read .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 2rem; }
+  .final .frame { place-content: center; text-align: center; gap: 2rem; }
+  .cta { justify-self: center; padding: 1em 2em; background: var(--ink); color: var(--paper); text-decoration: none; }
+  @media (max-width: 700px) { .window { inset: 12vh 6vw 44vh 6vw; } }
+</style>
+</head>
+<body>
+<main>
+  <section class="title" data-scene="title" data-still="0.7" style="--length: 220">
+    <div class="frame">
+      <div class="bar"></div>
+      <h1><span class="line"><span>Stand-in</span></span><span class="line"><span>title</span></span></h1>
+    </div>
+  </section>
+
+  <!-- A lateral rail: the camera "trucks" by moving the track, not the page. -->
+  <section class="rail" data-scene="rail" data-still="0.5" style="--length: 320">
+    <div class="frame">
+      <div class="track">
+        <div class="card"><b>01</b><span>First on the rail</span></div>
+        <div class="card"><b>02</b><span>Second</span></div>
+        <div class="card"><b>03</b><span>Third</span></div>
+        <div class="card"><b>04</b><span>Fourth</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- A wipe to a dark ground; an image slot opens like a window. -->
+  <section class="turn" data-scene="turn" data-cut data-still="0.8" style="--cut: 90; --length: 300">
+    <div class="frame">
+      <div class="window">image / illustration / footage</div>
+      <h2><span class="line"><span>The turn,</span></span><span class="line"><span>in the dark.</span></span></h2>
+    </div>
+  </section>
+
+  <section class="read" data-scene="read" data-flow>
+    <div class="frame">
+      <h2>Reading scene</h2>
+      <div class="cols">
+        <p>Pricing, specifications, questions and long copy scroll at the reader's pace.</p>
+        <p>Nothing here is pinned, and nothing here needs a GPU.</p>
+        <p>The film continues in type, spacing and ground.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" data-scene="final" data-hold style="--length: 120">
+    <div class="frame"><h2>Final card</h2><a class="cta" href="#">One action</a></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script type="module">
+  import { createReel } from './reel.js';
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reel = createReel({ lenis: reduced ? null : new Lenis({ autoRaf: false, lerp: 0.1 }) });
+
+  reel.intro((tl) => {
+    tl.from('.title .bar', { scaleX: 0, duration: 0.9, ease: 'power3.inOut' }, 0)
+      .from('.title .line > span', { yPercent: 110, duration: 1, stagger: 0.08, ease: 'power4.out' }, 0.25);
+  });
+
+  reel.scene('title', ({ main, q }) => {                      // a slow optical zoom: scale, not travel
+    main.fromTo(q('h1'), { scale: 1 }, { scale: 1.12, transformOrigin: '0% 60%' }, 0)
+        .to(q('.bar'), { yPercent: -4000, ease: 'power1.in' }, 0.5);
+  });
+
+  reel.scene('rail', ({ main, q, frame }) => {                // truck right along the rail
+    const track = q('.track')[0];
+    main.fromTo(track, { x: () => frame.clientWidth * 0.5 }, { x: () => -(track.scrollWidth - frame.clientWidth * 0.5) }, 0);
+  });
+
+  reel.scene('turn', ({ enter, main, frame, q }) => {
+    enter.fromTo(frame, { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', ease: 'power2.inOut' }, 0)    // wipe up
+         .fromTo(q('.window'), { clipPath: 'inset(48% 48% 48% 48%)' }, { clipPath: 'inset(30% 30% 30% 30%)', duration: 0.5 }, 0.5); // the window is already opening as the cut lands
+    main.fromTo(q('.window'), { clipPath: 'inset(30% 30% 30% 30%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.4, ease: 'power3.out', immediateRender: false }, 0)
+        .from(q('.line > span'), { yPercent: 110, duration: 0.2, stagger: 0.06, ease: 'power3.out' }, 0.4);
+  });
+
+  reel.start();
+</script>
+</body>
+</html>

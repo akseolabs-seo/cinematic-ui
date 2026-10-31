@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOM grade — grade.js</title>
+<!--
+  The grade.js gallery: one test scene (photograph, footage, a canvas plate, headline, body, a button) under several looks.
+  Serve over HTTP (ES modules; byte-range support for the video).
+    grade.html                  switchable: pick a look, scrub / play t, hold "compare" to see neutral
+    grade.html?view=all         every look at once (iframes of this page)
+    grade.html?look=wkw&t=2.5   one frozen frame, no UI (?bare=1 hides the UI, ?freeze=1 stops the clock): what the screening shoots
+  PRESETS LIVE HERE, NOT IN grade.js. The kit has no look of its own; these are examples a director would write.
+  The clock is the player's (below): grade.js never reads time itself, it only draws render(t).
+-->
+<style>
+  :root { --ground: #f3f0e8; --ink: #141312; --accent: #b8452a; --mute: color-mix(in srgb, var(--ink) 62%, var(--ground)); }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); }
+  body { margin: 0; color: var(--ink); font: 16px/1.55 "Segoe UI", system-ui, sans-serif; }
+  [hidden] { display: none !important; }
+  .bar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 20px; background: #111; color: #eee; font-size: 13px; }
+  .bar b { font-size: 14px; letter-spacing: .04em; }
+  .bar .looks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bar button { font: inherit; padding: 5px 12px; border-radius: 999px; border: 1px solid #555; background: transparent; color: #eee; cursor: pointer; }
+  .bar button[aria-pressed="true"] { background: #eee; color: #111; border-color: #eee; }
+  .bar input[type=range] { width: 180px; accent-color: #eee; }
+  .bar output { font: 12px ui-monospace, Consolas, monospace; min-width: 8ch; }
+  .read { display: flex; gap: 8px; flex: 1 1 100%; font: 11px ui-monospace, Consolas, monospace; color: #aaa; flex-wrap: wrap; align-items: center; }
+  .read i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff4; vertical-align: -3px; }
+
+  main.plate { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(16px, 2.4vw, 36px); padding: clamp(18px, 3vw, 44px); max-width: 1500px; margin: 0 auto; background: var(--ground); }
+  .copy { align-self: center; }
+  .kicker { font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+  h1 { font: 700 clamp(2.6rem, 6.4vw, 6rem)/.96 Georgia, "Times New Roman", serif; letter-spacing: -.02em; margin: 0 0 22px; }
+  p { margin: 0 0 18px; max-width: 34em; }
+  .cta { display: inline-block; padding: .85em 1.7em; background: var(--ink); color: var(--ground); text-decoration: none; font-weight: 600; letter-spacing: .02em; border: 0; font-size: 1rem; cursor: pointer; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.4vw, 20px); }
+  .shots .photo { grid-column: 1 / -1; }
+  .shots img, .shots video, .shots canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #222; }
+  .shots .photo img { aspect-ratio: 3 / 2; }
+  figcaption { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); padding-top: 6px; }
+  figure { margin: 0; }
+  footer.note { grid-column: 1 / -1; font-size: .8rem; color: var(--mute); border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); padding-top: 12px; }
+  @media (max-width: 860px) { main.plate { grid-template-columns: 1fr; } }
+
+  [data-format="43"] .shots img, [data-format="43"] .shots video, [data-format="43"] .shots canvas { aspect-ratio: 4 / 3; }
+  [data-format="43"] .shots .photo { justify-self: center; width: 66%; }
+
+  /* view=all */
+  .all { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 14px; padding: 14px; background: #111; }
+  .all figure { background: #000; }
+  .all iframe { display: block; width: 100%; aspect-ratio: 16 / 10; border: 0; }
+  .all figcaption { color: #ccc; padding: 6px 8px; }
+</style>
+</head>
+<body>
+<template id="scene">
+<main class="plate">
+  <div class="copy">
+    <p class="kicker">Reel Nº 4 · Night shift</p>
+    <h1>The last tram leaves at midnight.</h1>
+    <p>Nothing here has a look of its own: photographs, footage and a drawn plate take their colour from one grade, and the type above stays the colour the director gave it.</p>
+    <p><a class="cta" href="#book">Reserve a seat</a></p>
+  </div>
+  <div class="shots">
+    <figure class="photo"><img src="grade-assets/photo.jpg" alt="Lavender rows at sunrise" width="1024" height="683"><figcaption>Photograph</figcaption></figure>
+    <figure><video src="grade-assets/fog.mp4" poster="grade-assets/fog.jpg" muted loop playsinline preload="auto"></video><figcaption>Footage</figcaption></figure>
+    <figure><canvas width="960" height="540" aria-label="A night street drawn on a canvas"></canvas><figcaption>Canvas plate</figcaption></figure>
+  </div>
+  <footer class="note">Type and controls are not colour-filtered; vignette, grain and fade sit over everything, like a print.</footer>
+</main>
+</template>
+
+<div id="app"></div>
+
+<script type="module">
+import { createGrade, rgb, applyLook, neutral } from './grade.js';
+
+/* Looks: the starting values of grades.md (R1 R2 R3 R7 N2 N3 N4), unmeasured, written as plain numbers (colours as hex).
+   `page` retunes the CSS tokens (ground / ink / accent; --mute is derived), `spec` is the GRADE target published for screening.
+   Values are grades.md's as written; see notes.md for the few places where DOM bloom scaling matters. */
+const spec = (ground, ink, accent, more, black, white, saturation, warmth) => ({ palette: [ground, ink, accent, ...more], ground, ink, accent, black, white, saturation, warmth });
+const PRESETS = {
+  neutral: { name: 'Neutral', look: {}, page: { '--ground': '#f3f0e8', '--ink': '#141312', '--accent': '#b8452a' },
+    spec: spec('#f3f0e8', '#141312', '#b8452a', [], 0, 1, [0, 1], 0) },
+
+  r1: { name: 'Chungking Express (Wong / Doyle)', plateFps: 10,          // time is part of the grade: the canvas lead is step-printed at 10 fps, the footage stays smooth
+    look: { contrast: 1.15, saturation: 1.25, temperature: 0.05, tint: -0.25, lift: 0.02, split: 0.6, shadows: '#1f5a44', highlights: '#ffb48a', grain: 0.07, vignette: 0.2, halation: 0.35, halationColor: '#ff4a2a', bloom: 0.3 },
+    page: { '--ground': '#0c0a0e', '--ink': '#f1e7d3', '--accent': '#d8352a' },
+    spec: spec('#0c0a0e', '#f1e7d3', '#d8352a', ['#2f9e6a', '#1f5a44'], 0.03, 0.95, [0.3, 1], 0.05) },
+
+  r2: { name: 'Umbrellas of Cherbourg (Demy)',
+    look: { contrast: 1.0, saturation: 1.35, temperature: 0.05, lift: 0.03, split: 0.2, shadows: '#4a3a6a', highlights: '#fff1dc', grain: 0.02, halation: 0.15, halationColor: '#ff8aa0', bloom: 0.1, fade: 0 },
+    page: { '--ground': '#f4e9d8', '--ink': '#2a2433', '--accent': '#d8344f' },
+    spec: spec('#f4e9d8', '#2a2433', '#d8344f', ['#3f9e6a', '#7a4fa8'], 0.05, 1, [0.4, 1], 0.05) },
+
+  r3: { name: 'The Godfather (Willis)',
+    look: { contrast: 1.2, saturation: 0.7, temperature: 0.3, tint: 0.02, lift: 0.025, split: 0.3, shadows: '#1a1410', highlights: '#d9b277', grain: 0.055, vignette: 0.4, halation: 0.1, halationColor: '#c98a3e', bloom: 0.05, fade: 0.08 },
+    page: { '--ground': '#120d09', '--ink': '#d9c9ad', '--accent': '#a8742c' },
+    spec: spec('#120d09', '#d9c9ad', '#a8742c', ['#1a1410'], 0.03, 0.85, [0.15, 0.6], 0.3) },
+
+  r7: { name: 'Mid90s (Blauvelt)', format: '43',                         // pull-processed Super 16; 4:3 is the format
+    look: { contrast: 0.9, saturation: 0.85, temperature: 0.05, lift: 0.05, split: 0.1, shadows: '#2a2a28', highlights: '#f1e6d2', grain: 0.06, vignette: 0.12, halation: 0.1, halationColor: '#ff9a5a', bloom: 0.05, fade: 0.1 },
+    page: { '--ground': '#201d1a', '--ink': '#e8dfd0', '--accent': '#c9683a' },
+    spec: spec('#201d1a', '#e8dfd0', '#c9683a', ['#2a2a28'], 0.08, 0.92, [0.2, 0.7], 0.05) },
+
+  n2v: { name: 'Blade Runner 2049 · Las Vegas (Deakins)',
+    look: { contrast: 1.1, saturation: 1.2, temperature: 0.7, tint: 0.1, lift: 0.03, split: 0.7, shadows: '#4a1208', highlights: '#ffb26a', grain: 0.02, vignette: 0.25, halation: 0.5, halationColor: '#ff7a2a', bloom: 0.5 },
+    page: { '--ground': '#2a0f08', '--ink': '#ffd7b0', '--accent': '#ff6a1f' },
+    spec: spec('#2a0f08', '#ffd7b0', '#ff6a1f', ['#4a1208'], 0.06, 1, [0.4, 1], 0.7) },
+
+  n2l: { name: 'Blade Runner 2049 · Los Angeles (Deakins)',
+    look: { contrast: 1.0, saturation: 0.25, temperature: -0.4, lift: 0.03, split: 0.1, grain: 0.02, vignette: 0.2, halation: 0.05, bloom: 0.1 },
+    page: { '--ground': '#0c1012', '--ink': '#c9d0d4', '--accent': '#7fa0b0' },
+    spec: spec('#0c1012', '#c9d0d4', '#7fa0b0', [], 0.04, 0.9, [0, 0.35], -0.4) },
+
+  n3: { name: 'Drive (Refn / Sigel)',
+    look: { contrast: 1.15, saturation: 1.15, temperature: -0.05, tint: 0.05, lift: 0, split: 0.55, shadows: '#0a0f2a', highlights: '#ff7a5a', grain: 0.015, vignette: 0.2, halation: 0.2, halationColor: '#ff6a40', bloom: 0.25 },
+    page: { '--ground': '#06070f', '--ink': '#f2e8e4', '--accent': '#ff3d6e' },
+    spec: spec('#06070f', '#f2e8e4', '#ff3d6e', ['#f2a33a', '#0a0f2a'], 0, 1, [0.4, 1], 0) },
+
+  n4: { name: 'The Neon Demon (Refn / Braier)', pal: { win: ['#eafcff', '#18c6c0'], lamp: '#ffe6f2' },   // banned: yellow, orange. The drawn plate's windows and lamps follow
+    look: { contrast: 1.25, saturation: 1.3, temperature: -0.1, tint: 0.15, lift: 0, split: 0.7, shadows: '#12061c', highlights: '#ff4a7a', grain: 0.02, vignette: 0.25, halation: 0.15, halationColor: '#ff2a5a', bloom: 0.35 },
+    page: { '--ground': '#0a0509', '--ink': '#f4e6ee', '--accent': '#e0204a' },
+    spec: spec('#0a0509', '#f4e6ee', '#e0204a', ['#18c6c0', '#c02a8a', '#6a3ac8'], 0, 1, [0.5, 1], -0.1) },
+};
+
+const q = new URLSearchParams(location.search);
+const bare = q.has('bare') || q.has('look') && q.has('t');
+const freeze = q.has('freeze') || bare;
+
+/* ---------- view=all: one iframe per look ---------- */
+if (q.get('view') === 'all') {
+  const wrap = document.createElement('div'); wrap.className = 'all';
+  wrap.innerHTML = Object.entries(PRESETS).map(([k, p]) => `<figure><iframe src="?look=${k}&t=${q.get('t') || 3}&bare=1" title="${p.name}" loading="eager"></iframe><figcaption>${p.name}</figcaption></figure>`).join('');
+  document.body.append(wrap);
+} else {
+  const app = document.getElementById('app');
+  const tpl = document.getElementById('scene').content.cloneNode(true);
+  const bar = document.createElement('header'); bar.className = 'bar'; bar.hidden = bare;
+  bar.innerHTML = `<b>grade.js</b><span class="looks"></span>
+    <button id="play" aria-pressed="false">Play</button><input id="t" type="range" min="0" max="12" step="0.01" value="0" aria-label="time"><output id="tout"></output>
+    <button id="cmp" aria-pressed="false" title="hold to see the neutral picture">Compare</button><a href="?view=all" style="color:#aaa">all looks</a><div class="read"></div>`;
+  app.append(bar, tpl);
+  const root = document.documentElement;
+  const video = app.querySelector('video'), plate = app.querySelector('canvas');
+
+  const grade = createGrade({ clock: 'manual', tier: q.get('tier') || 'auto' });   // the player below owns the clock
+  let key = 'neutral', t = +(q.get('t') || 0), playing = false;
+
+  function setLook(k) {
+    key = k; const p = PRESETS[k];
+    applyLook(grade.look, p.look, { reset: true });
+    for (const v of ['--ground', '--ink', '--accent']) root.style.removeProperty(v);
+    if (p.format) root.dataset.format = p.format; else delete root.dataset.format;
+    for (const [v, c] of Object.entries(p.page)) root.style.setProperty(v, c);
+    grade.spec = p.spec;
+    bar.querySelectorAll('.looks button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+    bar.querySelector('.read').innerHTML = `spec ${p.spec.palette.map((c) => `<i style="background:${c}"></i>`).join('')} black ${p.spec.black} · white ${p.spec.white} · sat ${p.spec.saturation.join('–')} · warmth ${p.spec.warmth}`;
+    draw();
+  }
+  const lb = bar.querySelector('.looks');
+  for (const [k, p] of Object.entries(PRESETS)) { const b = document.createElement('button'); b.dataset.k = k; b.textContent = p.name; b.onclick = () => setLook(k); lb.append(b); }
+
+  /* The canvas plate: a wet night street, a pure function of t. Hot lamps and signs give bloom and halation something to find. */
+  const rnd = (i, s = 0) => { let h = (Math.imul(i, 374761393) + Math.imul(s, 668265263)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  function drawPlate(tt, pal = { win: ['#fff2c8', '#ffb347'], lamp: '#fff6dc' }) {
+    const c = plate.getContext('2d'), w = plate.width, h = plate.height;
+    let g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0b1230'); g.addColorStop(0.6, '#2a1740'); g.addColorStop(1, '#1b0f22');
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const hor = h * 0.62;
+    for (let i = 0; i < 16; i++) {                                    // skyline
+      const bw = 50 + rnd(i, 1) * 50, bx = i * 62 - 20, bh = 90 + rnd(i, 2) * 220;
+      c.fillStyle = `rgb(${10 + rnd(i, 3) * 10} ${10 + rnd(i, 3) * 12} ${22 + rnd(i, 3) * 14})`; c.fillRect(bx, hor - bh, bw, bh);
+      for (let y = hor - bh + 10; y < hor - 14; y += 16) for (let x = bx + 6; x < bx + bw - 8; x += 12) {
+        const on = rnd(Math.floor(x) * 7 + Math.floor(y), 5 + Math.floor(tt / 4)) > 0.62;
+        if (on) { c.fillStyle = rnd(x + y, 8) > 0.7 ? pal.win[0] : pal.win[1]; c.fillRect(x, y, 5, 8); }
+      }
+    }
+    c.fillStyle = '#12101c'; c.fillRect(0, hor, w, h - hor);           // street
+    g = c.createLinearGradient(0, hor, 0, h); g.addColorStop(0, '#2b1c3a'); g.addColorStop(1, '#0c0a12'); c.fillStyle = g; c.fillRect(0, hor, w, h - hor);
+    const neon = (x, y, ww, hh, col) => { c.shadowColor = col; c.shadowBlur = 0; c.fillStyle = '#fff'; c.fillRect(x + 2, y + 2, ww - 4, hh - 4); c.fillStyle = col; c.fillRect(x, y, ww, 3); c.fillRect(x, y + hh - 3, ww, 3); c.fillRect(x, y, 3, hh); c.fillRect(x + ww - 3, y, 3, hh); };
+    neon(110, 170, 170, 54, '#ff2f9e'); neon(640, 120, 120, 44, '#27d6e8'); neon(470, 210, 96, 40, '#ff2f9e');
+    for (const lx of [90, 330, 560, 820]) {                           // street lamps and their wet reflections
+      c.fillStyle = '#15121f'; c.fillRect(lx - 2, hor - 130, 4, 130);
+      c.fillStyle = pal.lamp; c.beginPath(); c.arc(lx, hor - 134, 9, 0, 7); c.fill();
+      g = c.createLinearGradient(0, hor, 0, h); g.addColorStop(0, pal.lamp + '88'); g.addColorStop(1, pal.lamp + '00');
+      c.fillStyle = g; c.fillRect(lx - 7, hor + 4, 14, h - hor);
+    }
+    for (let i = 0; i < 4; i++) {                                     // cars sliding past
+      const x = ((tt * (70 + i * 25) + i * 260) % (w + 120)) - 60, y = hor + 60 + i * 28, dir = i % 2 ? 1 : -1, xx = dir > 0 ? x : w - x;
+      c.fillStyle = dir > 0 ? '#ff2a2a' : pal.lamp; c.beginPath(); c.arc(xx, y, 6, 0, 7); c.arc(xx + 22, y, 6, 0, 7); c.fill();
+    }
+  }
+  function draw() {
+    t = Math.max(0, t);
+    const vt = video.duration ? t % video.duration : 0;
+    if (video.readyState > 0 && (freeze || !playing) && Math.abs(video.currentTime - vt) > 0.02) video.currentTime = vt;
+    const P = PRESETS[key]; drawPlate(P.plateFps ? Math.floor(t * P.plateFps) / P.plateFps : t, P.pal);   // plateFps: the step-printed lead
+    grade.render(t);
+    bar.querySelector('#tout').textContent = `t = ${t.toFixed(2)} s`; bar.querySelector('#t').value = t % 12;
+  }
+  video.addEventListener('loadeddata', draw); video.addEventListener('seeked', () => { document.documentElement.dataset.ready = '1'; });
+  window.__setT = (tt) => { t = tt; draw(); };           // for the screening scripts
+
+  // The player's clock (the grade never reads time): rAF timestamps → t, only while playing.
+  let t0 = 0;
+  function tick(ts) { if (!playing) return; t = t0 + ts / 1000; if (video.paused) video.play().catch(() => {}); draw(); requestAnimationFrame(tick); }
+  bar.querySelector('#play').onclick = (e) => {
+    playing = !playing; e.target.setAttribute('aria-pressed', String(playing)); e.target.textContent = playing ? 'Pause' : 'Play';
+    if (playing) requestAnimationFrame((ts) => { t0 = t - ts / 1000; tick(ts); }); else video.pause();
+  };
+  bar.querySelector('#t').oninput = (e) => { t = +e.target.value; draw(); };
+  const cmp = bar.querySelector('#cmp'); let saved = null;
+  const hold = (on) => { if (on) { saved = JSON.stringify(grade.look); applyLook(grade.look, {}, { reset: true }); } else if (saved) { Object.assign(grade.look, JSON.parse(saved)); saved = null; } cmp.setAttribute('aria-pressed', String(on)); draw(); };
+  cmp.onpointerdown = () => hold(true); addEventListener('pointerup', () => saved && hold(false));
+
+  setLook(PRESETS[q.get('look')] ? q.get('look') : 'neutral');
+  if (!freeze) { video.muted = true; }
+  window.__gal = { grade, setLook, PRESETS };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animatic — stage kit</title>
+<!--
+  THIS IS AN ANIMATIC, NOT A DESIGN.
+  Grey clay, system type, placeholder words. It exists to show the wiring: scenes, pinned frames, a designed
+  cut, a flow scene, one persistent stage, camera keyed to scroll. Keep the wiring, replace everything you can see.
+-->
+<link rel="stylesheet" href="./reel.css">
+<style>
+  :root { color-scheme: dark; --ink: #d9d9d6; --dim: #8a8a86; --ground: #101012; }
+  body { background: var(--ground); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+  .frame { display: grid; padding: 6vmin; padding-bottom: calc(6vmin + var(--safe-bottom)); box-sizing: border-box; }
+  .slate { position: fixed; z-index: 5; top: 2.2vmin; left: 6vmin; right: 6vmin; display: flex; justify-content: space-between; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  h1, h2 { margin: 0; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+  h1 { font-size: clamp(3rem, 11vw, 11rem); align-self: end; }
+  h2 { font-size: clamp(2rem, 6vw, 6rem); }
+  .line { display: block; overflow: clip; }
+  .line > span { display: block; }
+  .turn .frame { background: #1a1a1d; align-content: center; padding-left: 54%; }
+  @media (max-width: 700px) { .turn .frame { padding-left: 50%; } }
+  .beats { display: grid; gap: 1.2rem; max-width: 34ch; }
+  .beats p { margin: 0; color: var(--dim); }
+  .proof .frame { background: #e8e8e4; color: #161616; align-content: center; gap: 2rem; padding-block: 16vh; }
+  .proof .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 2rem; }
+  .final .frame { place-content: center; text-align: center; gap: 2rem; }
+  .cta { justify-self: center; padding: 1em 2em; border: 1px solid currentColor; color: inherit; text-decoration: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="slate"><span>Animatic</span><span id="tc">—</span></div>
+
+<main>
+  <!-- 1. A pinned scene: 250vh of scroll, the frame holds while the camera pushes in. -->
+  <section class="opening" data-scene="opening" data-still="0.6" style="--length: 250">
+    <div class="frame">
+      <h1><span class="line"><span>Stand-in</span></span><span class="line"><span>headline</span></span></h1>
+    </div>
+  </section>
+
+  <!-- 2. A designed cut: this frame wipes in over the last 100vh of scene 1's hold. -->
+  <section class="turn" data-scene="turn" data-cut data-still="0.7" style="--cut: 100; --length: 300">
+    <div class="frame">
+      <div class="beats">
+        <h2>Three beats</h2>
+        <p class="beat">Beat one arrives on its mark.</p>
+        <p class="beat">Beat two follows.</p>
+        <p class="beat">Beat three lands.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. A flow scene: reads like a document, scrolls naturally, opaque so the stage rests. -->
+  <section class="proof" data-scene="proof" data-flow>
+    <div class="frame">
+      <h2>Reading scene</h2>
+      <div class="cols">
+        <p>Long copy, tables, pricing and FAQ belong in flow scenes. They scroll at the reader's pace.</p>
+        <p>The film does not stop here: light, type and rhythm still belong to the same picture.</p>
+        <p>Nothing is pinned, so nothing can trap a reader who only wants the facts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. The final image. -->
+  <section class="final" data-scene="final" data-still="0.8" style="--length: 180">
+    <div class="frame">
+      <h2>Final image</h2>
+      <a class="cta" href="#">One action</a>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+<script type="module">
+  import { createReel } from './reel.js';
+  import { createStage, THREE } from './stage.js';
+  import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lenis = reducedMotion ? null : new Lenis({ autoRaf: false, lerp: 0.1 });
+  const reel = createReel({ lenis });
+  const stage = createStage({ canvas: document.querySelector('#stage'), background: '#101012' });
+  const { rig, look } = stage;
+  Object.assign(look, { grain: 0.03, vignette: 0.25, bloom: 0.1 });   // the lens and print of THIS film: the stage starts with none
+  rig.breathe = 0.01;
+
+  /* ----- lighting: a large soft key, a cool rim strip, a low fill ----- */
+  stage.studio({
+    ambient: '#0b0b0d',
+    lights: [
+      { pos: [-5, 6, 4], size: [7, 7], intensity: 7 },
+      { pos: [6, 2, -5], size: [1.2, 9], intensity: 14, color: '#cfe0ff' },
+      { pos: [0, -4, 6], size: [10, 3], intensity: 1.2 },
+    ],
+  });
+  stage.key({ pos: [-4, 8, 5], intensity: 1.6 });
+  stage.floor({ y: -1.2 });
+
+  /* ----- cast: a clay stand-in for the lead ----- */
+  const lead = new THREE.Mesh(
+    new RoundedBoxGeometry(1.7, 2.4, 1.7, 8, 0.22),
+    new THREE.MeshPhysicalMaterial({ color: '#8d8d89', roughness: 0.62, clearcoat: 0.15, clearcoatRoughness: 0.5 }),
+  );
+  lead.castShadow = lead.receiveShadow = true;
+  stage.scene.add(lead);
+  const act = { spin: -0.5, lift: 0 };                         // the lead's performance, as plain numbers
+  stage.onTick(() => { lead.rotation.y = act.spin; lead.position.y = act.lift; });
+
+  /* ----- the shot list ----- */
+  reel.intro((tl) => {                                          // opening titles: time-driven, plays once
+    tl.from('.opening .line > span', { yPercent: 110, duration: 1.1, stagger: 0.09, ease: 'power4.out' }, 0.15)
+      .from(look, { fade: 1, duration: 1.4, ease: 'power2.out' }, 0);
+  });
+
+  reel.scene('opening', ({ main }) => {                         // long lens, slow push-in
+    main.fromTo(rig, { x: 2.6, y: 0.4, z: 10, lookX: 1.4, fov: 24 }, { x: 1.2, y: 0.9, z: 6.2, lookX: 0.6, fov: 24, ease: 'power1.inOut' }, 0)
+        .fromTo(act, { spin: -0.5 }, { spin: 0.35 }, 0);
+  });
+
+  reel.scene('turn', ({ enter, main, frame, q }) => {
+    enter.fromTo(frame, { clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 46%)', ease: 'power2.inOut' }, 0)  // the wipe
+         .fromTo(rig, { x: 1.2, y: 0.9, z: 6.2, lookX: 0.6 }, { x: 0.4, y: 0.3, z: 5.6, lookX: 1.7, ease: 'power2.inOut' }, 0);
+    main.fromTo(rig, { x: 0.4, y: 0.3, z: 5.6, lookX: 1.7 }, { x: 2.4, y: 1.7, z: 4.8, lookX: 1.7 }, 0)          // slow arc round the lead
+        .fromTo(act, { spin: 0.35 }, { spin: 2.2 }, 0)
+        .from(q('.beat'), { opacity: 0, y: 24, duration: 0.12, stagger: 0.22, ease: 'power2.out' }, 0.12);
+  });
+
+  reel.scene('final', ({ enter, main }) => {
+    enter.fromTo(rig, { x: 0, y: 0.2, z: 16, lookX: 0, fov: 18 }, { x: 0, y: 0.2, z: 12, lookX: 0, fov: 18 }, 0)   // a hard cut: the pose jumps, it does not travel
+         .fromTo(act, { spin: 2.2, lift: 0 }, { spin: 3.14, lift: 0 }, 0);
+    main.fromTo(rig, { z: 12 }, { z: 9.5, ease: 'power1.out' }, 0)
+        .fromTo(look, { vignette: 0.25 }, { vignette: 0.6 }, 0);
+  });
+
+  const tc = document.querySelector('#tc');
+  reel.onFrame((f) => {
+    stage.render(f.time);
+    tc.textContent = `${f.scene.name} · ${f.sceneProgress.toFixed(2)}`;
+  });
+  reel.start();
+</script>
+</body>
+</html>

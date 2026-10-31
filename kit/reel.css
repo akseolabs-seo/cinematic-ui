@@ -1,0 +1,50 @@
+/* reel.css — the structure reel.js expects. It has no look: no colours, no type, no spacing. */
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+
+html, body { overflow-x: clip; } body { margin: 0; } /* clip, never hidden: `overflow: hidden` on an ancestor breaks position: sticky */
+
+/* A frame is one LARGE viewport tall, so on phones the browser's own bar can cover its bottom strip.
+   --safe-bottom is the height of that strip (0 on desktop). Keep anything anchored to the bottom above it:
+   .frame { padding-bottom: calc(6vmin + var(--safe-bottom)); } */
+:root { --safe-bottom: 0px; }
+@supports (height: 100lvh) { :root { --safe-bottom: calc(100lvh - 100svh); } }
+
+/* The stage: one persistent canvas behind the whole film. */
+#stage { position: fixed; inset: 0; z-index: 0; display: block; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; }
+.no-webgl #stage { display: none; } /* give .no-webgl a CSS poster of your own */
+main { position: relative; z-index: 1; }
+
+/* A scene is a stretch of scroll; its .frame is the shot that stays on screen while the scene plays.
+   <section data-scene="arrival" style="--length: 300">   →   300vh of scroll, 200vh of them pinned. */
+[data-scene] { position: relative; min-height: 100vh; min-height: 100lvh; }
+[data-scene] > .frame { position: sticky; top: 0; height: 100vh; height: 100lvh; overflow: clip; }
+.reel-ready:not(.reduced-motion) [data-scene] { min-height: calc(var(--length, 100) * 1vh); min-height: calc(var(--length, 100) * 1lvh); }
+
+/* A flow scene reads like a document: it is as tall as its content and scrolls naturally. */
+[data-scene][data-flow], .reel-ready:not(.reduced-motion) [data-scene][data-flow] { min-height: 0; }
+[data-scene][data-flow] > .frame, .reduced-motion [data-scene][data-flow] > .frame { position: relative; height: auto; min-height: 0; overflow: visible; }
+
+/* A designed cut: <section data-scene="turn" data-cut style="--cut: 100; --length: 300">
+   The scene slides under the end of the previous one, so for --cut vh of scroll BOTH frames are pinned,
+   this one on top. Its `enter` clip (and the previous scene's `exit`) play across that overlap:
+   wipe, iris, dissolve, match cut. Without data-cut a scene simply scrolls in (a push). */
+.reel-ready:not(.reduced-motion) [data-scene][data-cut] { pointer-events: none; } /* its box overlaps the previous scene: only its frame takes clicks */
+.reel-ready:not(.reduced-motion) [data-scene][data-cut] > .frame { pointer-events: auto; }
+.reel-ready:not(.reduced-motion) [data-scene][data-cut] { margin-top: calc((var(--cut, 100) + 100) * -1vh); margin-top: calc((var(--cut, 100) + 100) * -1lvh); }
+.reel-ready:not(.reduced-motion) [data-scene][data-cut][data-phase="before"] > .frame,
+.reel-ready:not(.reduced-motion) [data-scene][data-phase="after"] > .frame { opacity: 0 !important; pointer-events: none; }
+/* Off-stage frames are transparent, not `visibility: hidden`, so their links and fields stay in the tab order:
+   focusing one scrolls its scene into view. The reel owns this; never tween autoAlpha / visibility on a .frame. */
+
+/* Letterbox + flash live in the DOM so they cover type as well as canvas. Drive --bars (0–0.2) and --flash (0–1). */
+.letterbox::before, .letterbox::after { content: ""; position: fixed; left: 0; right: 0; z-index: 50; height: calc(var(--bars, 0) * 100lvh); background: #000; pointer-events: none; }
+.letterbox::before { top: 0; }
+.letterbox::after { bottom: 0; }
+.flash { position: fixed; inset: 0; z-index: 60; background: var(--flash-color, #fff); opacity: var(--flash, 0); pointer-events: none; }
+
+/* The accessible cut: no pinning, no overlap, every scene one composed still. */
+.reduced-motion [data-scene] > .frame { position: relative; height: auto; min-height: 100vh; min-height: 100lvh; }

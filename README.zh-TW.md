@@ -1,193 +1,197 @@
-# Cinematic UI
+# Cinematic UI 2.0 — Director's Cut
 
-<p align="center">
-  <img src="./docs/banner.svg" alt="Cinematic UI Banner" width="100%" />
-</p>
+**讓 AI 像拍電影一樣「導」網站和後台的 Agent Skill。**
 
-<p align="center">
-  以「導演 + 電影」研究流程設計網站的跨 agent skill。
-</p>
+AI 做的網站常常長得一樣，因為從頭到尾沒有人做過選擇。Cinematic UI 讓你的代理先選一位導演、決定畫面由什麼構成、為每個區塊寫分鏡表，再動手拍，交件前還要親自看過算出來的畫面。
 
-<p align="center">
-  <a href="./README.md">English</a> ·
-  <a href="./README.zh-CN.md">简体中文</a>
-</p>
+**[官網](https://cinematicskill.com/zh-tw/)** · **[線上 Demo](https://cinematicskill.com/zh-tw/gallery/)** · **[文件](https://cinematicskill.com/zh-tw/docs/)** · [English](README.md) · 繁體中文
 
-<p align="center">
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-cb9b6b?style=for-the-badge&labelColor=17120f" alt="MIT License"></a>
-  <a href="./CLAUDE.md"><img src="https://img.shields.io/badge/Claude%20Code-Supported-a9784b?style=for-the-badge&labelColor=17120f" alt="Claude Code"></a>
-  <a href="./CODEX.md"><img src="https://img.shields.io/badge/Codex-Supported-9b8a6e?style=for-the-badge&labelColor=17120f" alt="Codex"></a>
-</p>
-
----
-
-## Demo
-
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/43343d78-9697-4d29-9387-2da72694f2fc" autoplay loop muted playsinline width="100%"></video>
-</p>
-
-<p align="center">
-  <em>沒有給任何參考、沒有給任何指令。導演與電影隨機挑選，單次輸出結果。</em>
-</p>
-
----
-
-## 這是什麼
-
-`cinematic-ui` 是一個給 AI coding agent（Claude Code、Codex、Cursor、Windsurf、Gemini、Copilot）使用的 skill 包。它引導 agent 用一套固定流程做網站：
-
-1. 挑一位導演與一部電影
-2. 研究這部電影的視覺語言（攝影、燈光、節奏、材質）
-3. 把研究成果轉成網頁工件：`decisions.md`、`storyboard.md`、`compiled-spec.md`
-4. 從 spec 出發實作 HTML / CSS / JS
-
-電影是研究素材，不是規格表。Agent 的任務是從電影裡抽出結構性的模式，再翻譯成版面、構圖、動態與字體。
-
----
-
-## 流程
-
-| 階段 | 工作 | 產出 |
-|------|------|------|
-| Phase 1 | 開場問卷、選擇導演與電影、唯一性檢查、研究 | `decisions.md` |
-| Phase 2 | 全站 cinematic grammar、各頁 scene thesis、signature composition | `storyboard.md` |
-| Phase 3 | 分頁拆解 camera、interaction、composition、texture、typography | `compiled-spec.md` |
-| Phase 4 | 實作、加 reduced-motion 與 RWD、跑 anti-garbage 檢查 | HTML / CSS / JS |
-
-Phase 2 的內部順序固定：全站語法 → 各頁 thesis → 各頁構圖 → 共用系統。
-
----
-
-## 支援工具
-
-| 工具 | 入口檔案 | 安裝路徑 |
-|------|---------|----------|
-| Claude Code | [`CLAUDE.md`](./CLAUDE.md) | `~/.claude/skills/cinematic-ui` |
-| Codex / ChatGPT | [`CODEX.md`](./CODEX.md) | `$CODEX_HOME/skills/cinematic-ui` |
-| Cursor | [`.cursor/rules/cinematic-ui.mdc`](./.cursor/rules/cinematic-ui.mdc) | clone 後自動載入 |
-| Windsurf | [`.windsurf/rules/cinematic-ui.md`](./.windsurf/rules/cinematic-ui.md) | clone 後自動載入 |
-| GitHub Copilot | [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | clone 後自動載入 |
-| Gemini / Antigravity | [`GEMINI.md`](./GEMINI.md) | 專案啟動時讀取 |
-| 跨工具 | [`AGENTS.md`](./AGENTS.md) | 通用參考 |
-
----
-
-## 安裝
-
-### Claude Code
-
-**Windows：**
-```powershell
-git clone https://github.com/akseolabs-seo/cinematic-ui "$env:USERPROFILE\.claude\skills\cinematic-ui"
-```
-
-**macOS / Linux：**
 ```bash
 git clone https://github.com/akseolabs-seo/cinematic-ui ~/.claude/skills/cinematic-ui
 ```
 
-安裝後在 Claude Code 內輸入 `/cinematic-ui`。
+接著告訴你的代理：`/cinematic-ui 幫一個手沖咖啡訂閱品牌做首頁`
 
-### Codex / ChatGPT
+## 宣傳片
+
+[![觀看 Cinematic UI 2.0 宣傳片](docs/launch-film.jpg)](https://github.com/akseolabs-seo/cinematic-ui/releases/download/v2.8.0/cinematic-ui-2.0-launch.mp4)
+
+**[觀看宣傳片](https://github.com/akseolabs-seo/cinematic-ui/releases/download/v2.8.0/cinematic-ui-2.0-launch.mp4)** · 1 分 30 秒，MP4，有聲音
+
+## 線上 Demo
+
+**[cinematicskill.com](https://cinematicskill.com/zh-tw/gallery/)** 上有十個可以實際操作的網站，全部由代理使用這個 skill 做出來。品牌都是虛構的，成品是真的。點畫面就能開啟網站；每個 Demo 也附上企劃書，寫明它選了哪位導演、什麼媒材、什麼主角和調色，以及為什麼這樣選。官網的[中文作品集](https://cinematicskill.com/zh-tw/gallery/)收中文作品，[英文作品集](https://cinematicskill.com/gallery/)收英文作品。
+
+<table>
+<tr>
+<td width="50%"><a href="https://cinematicskill.com/demos/latent-film-lab/"><img src="docs/demos/latent-film-lab.jpg" alt="潛影沖洗所"></a><br><b>潛影沖洗所</b>，底片沖洗<br>安東尼奧尼《春光乍現》<br>在暗房裡顯影的真實檔案照片 · <a href="https://cinematicskill.com/zh-tw/gallery/latent-film-lab/">企劃書</a></td>
+<td width="50%"><a href="https://cinematicskill.com/demos/beichen-er/"><img src="docs/demos/beichen-er.jpg" alt="北辰動物急診醫院"></a><br><b>北辰動物急診醫院</b>，24 小時動物急診<br>大衛．芬奇《索命黃道帶》<br>一條連續手繪的線 · <a href="https://cinematicskill.com/zh-tw/gallery/beichen-er/">企劃書</a></td>
+</tr>
+<tr>
+<td><a href="https://cinematicskill.com/demos/tieout/"><img src="docs/demos/tieout.jpg" alt="勾稽"></a><br><b>勾稽</b>，會計 SaaS<br>庵野秀明《正宗哥吉拉》<br>排版成型的會計文件 · <a href="https://cinematicskill.com/zh-tw/gallery/tieout/">企劃書</a></td>
+<td><a href="https://cinematicskill.com/demos/retour/"><img src="docs/demos/retour.jpg" alt="回眸"></a><br><b>回眸</b>，香水新品發表<br>瑟琳．席安瑪《燃燒女子的畫像》<br>只靠一支燭火照明的即時 3D 玻璃瓶 · <a href="https://cinematicskill.com/zh-tw/gallery/retour/">企劃書</a></td>
+</tr>
+<tr>
+<td><a href="https://cinematicskill.com/demos/lockwork/"><img src="docs/demos/lockwork.jpg" alt="Lockwork"></a><br><b>Lockwork</b>，AI 營運代理（英文）<br>Robert Wise《The Andromeda Strain》<br>即時排版的監控牆 · <a href="https://cinematicskill.com/gallery/lockwork/">企劃書</a></td>
+<td><a href="https://cinematicskill.com/demos/purser/"><img src="docs/demos/purser.jpg" alt="Purser"></a><br><b>Purser</b>，企業費用卡（英文）<br>Billy Wilder《The Apartment》<br>單色 CSS 3D 辦公室 · <a href="https://cinematicskill.com/gallery/purser/">企劃書</a></td>
+</tr>
+<tr>
+<td><a href="https://cinematicskill.com/demos/lull/"><img src="docs/demos/lull.jpg" alt="Lull"></a><br><b>Lull</b>，事故應變與待命（英文）<br>Edgar Wright《Baby Driver》<br>以產品介面當作整個世界 · <a href="https://cinematicskill.com/gallery/lull/">企劃書</a></td>
+<td><a href="https://cinematicskill.com/demos/odd-lot/"><img src="docs/demos/odd-lot.jpg" alt="Odd Lot"></a><br><b>Odd Lot</b>，設計工作室作品集（英文）<br>Godard《Pierrot le Fou》<br>平塗原色與排版文字 · <a href="https://cinematicskill.com/gallery/odd-lot/">企劃書</a></td>
+</tr>
+<tr>
+<td><a href="https://cinematicskill.com/demos/lattice-matrix/"><img src="docs/demos/lattice-matrix.jpg" alt="Lattice Matrix cut"></a><br><b>Lattice（Matrix cut）</b>，LLM 閘道（英文）<br>The Wachowskis《The Matrix》<br>由產品流量組成的字元串流 · <a href="https://cinematicskill.com/gallery/lattice-matrix/">企劃書</a></td>
+<td><a href="https://cinematicskill.com/demos/lattice-kiki/"><img src="docs/demos/lattice-kiki.jpg" alt="Lattice Miyazaki cut"></a><br><b>Lattice（Miyazaki cut）</b>，同一個產品（英文）<br>宮崎駿《Kiki's Delivery Service》<br>水粉風格的繪製背景板 · <a href="https://cinematicskill.com/gallery/lattice-kiki/">企劃書</a></td>
+</tr>
+</table>
+
+## 核心想法
+
+網站是一部以捲軸為播放頭的電影。區塊是場景，視窗是畫格，一次捲動是一個剪接或一次運鏡；訪客是觀眾、是剪接師，還有一次機會成為參與者。
+
+整個 skill 只靠一條規則：**借電影的機制，不借電影的戲服。** 導演風格是一組決定：鏡頭站哪、一顆鏡頭撐多久、光藏住什麼、怎麼剪、畫面由什麼構成。這些會被翻譯成結構、動態、媒材與材質。片名、角色、道具不會出現在產品的 UI 上。
+
+## 跟一般做法差在哪
+
+| 常見的「做高級一點」 | Cinematic UI |
+|---|---|
+| 選一個風格套到版型上 | 依產品的「戲劇問題」選導演，萃取 5–7 個看得到的機制 |
+| 預設同一種長相（通常是亮面 3D 或玻璃） | 從電影推導**媒材**：水墨、鉛筆、賽璐珞、像素、印刷、霓虹、純字體、攝影，或 3D |
+| 設計一個 hero，其餘填區塊 | 每一場都有**分鏡**：節拍、景別、鏡頭、運鏡、走位、光、剪接、長度 |
+| 自己編假圖頂著 | **素材通告**：一次問清楚：你提供、免費授權圖庫、AI 生成，還是改鏡頭 |
+| 元素進畫面就淡入 | 單一時間軸；場與場之間的每個剪接都是決定 |
+| 「看起來不錯」 | **試片**：三種視窗的聯絡表、五格原尺寸檢查、具名修正 |
+| 每個網站長得像親戚 | 作品紀錄＋骨架檢查，下一部必須和前三部不同 |
+
+## 製作流程
+
+| # | 階段 | 產出 |
+|---|---|---|
+| 1 | 企劃 | Logline 與觀眾弧線 |
+| 2 | 選導演 | 試鏡三位、留下一位，萃取機制 |
+| 3 | 選媒材 | 畫面由什麼構成、為什麼 |
+| 4 | 選角與素材通告 | 主角與它的弧線；一則訊息問清楚需要的素材 |
+| 5 | 劇本 | 所有看得到的文字 |
+| 6 | 分鏡 | 形式、骨架、每一場的分鏡、觀眾的戲份 |
+| 7 | Animatic | 用選定的媒材粗做整頁 |
+| 8 | 正式拍攝 | 演員、場景、打光、構圖、剪接 |
+| 9 | 試片 | 聯絡表、放映室、筆記、重拍 |
+| 10 | 交付 | 誠實的報告：看過什麼、哪些是替身、還缺什麼 |
+
+## 2.0 有什麼
+
+**App 模式。** 儀表板、管理後台、控制台有自己的一套規則。播放頭變成使用者的任務，電影感只佔畫面大約十分之一：用一個只有這個產品才有的招牌畫面，取代千篇一律的 KPI 列。每條路由都要用 `app-screening.mjs` 在八種狀態、多種視窗與主題下試片。
+
+**任何電影都能當場調研。** 沒有固定片單。指定一部片，或只給描述（例如「90 年代香港深夜、孤獨、潮濕」），`references/film-research.md` 會從有出處的訪談和參考畫面下手，每條資訊都標明來源等級。
+
+**調色。** 電影的色彩會真正落到頁面上。`references/grades.md` 收錄 14 種有出處的 look，`grade-from-stills.mjs` 從參考影格量出調色規格，`kit/grade.js` 把它套到 DOM 網站，`screening.mjs --grade` 抓出偏離調色的畫面。
+
+**電影的世界。** `references/art-direction.md` 把美術設計轉成卡片、按鈕、分隔線、表單和頁尾；海報的構圖語法則用在首屏、OG 圖和片頭字卡。
+
+**媒材。** 擬真 3D 只是其中一種，不是預設。以下每一種都是 `kit/looks.js` 裡實測過的程式：
+
+![同一個場景，不同媒材](docs/looks.jpg)
+
+水墨、鉛筆與水彩、像素、網點與 CMY 印刷、CRT 與霓虹、賽璐珞描邊、液態、漸變光、把插畫與照片當成 2.5D 圖層、DOM 與 SVG 的手繪線抖動；另外有給「真的是實體亮面」的片子用的 HDR 3D 攝影棚，以及完全不用 canvas、只靠字體的路線。
+
+**文字演出。** `kit/type-fx.js` 有 44 種文字演出，可以跟著捲動播放，也能由時鐘逐格精準算出，真實文字一直留在 DOM 裡。
+
+**合法的真實影像。** `find-footage.mjs` 用分鏡描述去開放圖庫找素材（Openverse、Wikimedia Commons、Internet Archive、NASA，有免費金鑰時再加 Pixabay 或 Unsplash），拿回裁好的片段、首幀圖和 `CREDITS.md`。
+
+## 安裝
+
+**Claude Code**
 
 ```bash
-git clone https://github.com/akseolabs-seo/cinematic-ui $CODEX_HOME/skills/cinematic-ui
+git clone https://github.com/akseolabs-seo/cinematic-ui ~/.claude/skills/cinematic-ui
 ```
 
-### Cursor / Windsurf / GitHub Copilot
+**Codex CLI**
 
 ```bash
-git clone https://github.com/akseolabs-seo/cinematic-ui
+git clone https://github.com/akseolabs-seo/cinematic-ui ~/.codex/skills/cinematic-ui
 ```
 
-對應的 rule 檔案已就位，不需額外設定。
+**其他 agent**：讓它讀 `SKILL.md` 即可。全部是純 Markdown、純 JavaScript 和 Node 腳本，不需要建置。
 
----
+試片與算片腳本需要在你的專案裡安裝：
 
-## 建議 Prompt
-
-```text
-用 cinematic-ui 做一個首頁。
-導演跟電影你自己選。
-有網路的話先研究導演跟電影。
-跑 Demo Uniqueness Protocol。
-不要重用之前 demo 的版型。
+```bash
+npm i -D playwright-core     # 使用已安裝的 Chrome 或 Edge
 ```
 
----
+算影片才需要 ffmpeg。
 
-## References 資料庫
+## 使用
 
-所有參考資料放在 `references/`，依 phase 分類。每個 phase 只載入需要的檔案。
-
-### 核心規則
-
-| 檔案 | 用途 |
-|------|------|
-| [`references/library-index.md`](./references/library-index.md) | 各 phase 該讀哪些檔案 |
-| [`references/premium-calibration.md`](./references/premium-calibration.md) | 導演 brief 後的自我檢查 |
-| [`references/anti-garbage.md`](./references/anti-garbage.md) | AI 常見的設計劣化模式 |
-| [`references/anti-convergence.md`](./references/anti-convergence.md) | 用 hash 防止跨 demo 重複版型 |
-| [`references/implementation-guardrails.md`](./references/implementation-guardrails.md) | Phase 3–4 實作規則 |
-| [`references/reference-protocol.md`](./references/reference-protocol.md) | 如何拆解參考站而不抄襲 |
-| [`references/output-templates.md`](./references/output-templates.md) | 各 phase 工件的標準格式 |
-
-### 資料庫
-
-| 檔案 | 內容 |
-|------|------|
-| `references/data/directors-200.md` | 200+ 位導演與作品視覺風格 |
-| `references/data/hero-archetypes.md` | 30 種 hero 骨架 |
-| `references/data/narrative-beats.md` | 25 個敘事節奏 + 18 種導演 arc 模板 |
-| `references/data/section-functions.md` | 50 種功能性 section 類型 |
-| `references/data/section-archetypes.md` | 91+ 種 section 骨架 |
-| `references/data/dna-index.tsv` | 1,486 個網站的 Design DNA 索引 |
-| `references/data/design-dna-db.txt` | 站台層級的 DNA 資料 |
-| `references/data/camera-shots-50.md` | 55 種進場與揭露行為 |
-| `references/data/interaction-effects-50.md` | 55+ 種 hover / click / scroll 互動 |
-| `references/data/compositions.md` | 80 種版面構圖 |
-| `references/data/visual-elements.md` | 40 種視覺裝飾元素 |
-| `references/data/background-techniques.md` | 50+ 種 hero 背景與氛圍層 |
-| `references/data/typography-cinema.md` | 40+ 種文字處理 |
-| `references/data/color-grades.md` | 40+ 種電影調色到 UI token 的轉譯 |
-| `references/data/font-moods.md` | 30+ 種字體配對 |
-| `references/data/textures.md` | 30+ 種表面材質 |
-
----
-
-## 目錄結構
-
-```text
-cinematic-ui/
-├── SKILL.md                        ← 主要 skill 邏輯
-├── skill.json                      ← 通用 skill manifest
-├── CLAUDE.md                       ← Claude Code
-├── AGENTS.md                       ← 跨工具共用參考
-├── CODEX.md                        ← Codex / ChatGPT
-├── GEMINI.md                       ← Gemini / Antigravity
-├── .cursor/rules/                  ← Cursor rules（自動載入）
-├── .windsurf/rules/                ← Windsurf rules（自動載入）
-├── .github/copilot-instructions.md ← GitHub Copilot（自動載入）
-├── agents/openai.yaml              ← OpenAI skill metadata
-├── docs/                           ← banner、demo 素材
-└── references/
-    ├── library-index.md
-    ├── premium-calibration.md
-    ├── anti-garbage.md
-    ├── anti-convergence.md
-    ├── implementation-guardrails.md
-    ├── reference-protocol.md
-    ├── output-templates.md
-    └── data/                       ← 18 個設計資料庫
+```
+/cinematic-ui 幫一個手沖咖啡訂閱品牌做首頁，要 Awwwards 等級
+/cinematic-ui 用小津安二郎的方式拍這個 SaaS 的 landing page
+/cinematic-ui 給我三個導演方向讓我選
+/cinematic-ui 幫物流團隊導一個訂單管理後台
 ```
 
----
+預設它會直接「導」：自己做決定、製作、試片，再把成品連同企劃書給你。只有三種情況會停下來問：看不出產品是什麼、需要素材（你的，或你同意它生成）、或是要對外發布。
 
-## 貢獻
+想把做好的網站錄成影片：
 
-請見 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+```bash
+node scripts/render-film.mjs ./site --tour 30 --out tour.mp4
+```
+
+## 內容物
+
+```
+SKILL.md                     導演方法本體
+references/
+  directors.md               選角：約 40 位導演的機制，以及該避開的直覺選擇
+  film-grammar.md            景別、鏡頭、運鏡、光、剪接、色彩、時間 → 網頁機制
+  film-research.md           當場調研任何電影；從描述找候選電影
+  looks.md                   選媒材、素材通告、各媒材的做法
+  grades.md                  選調色；14 種復古與霓虹範例
+  art-direction.md           電影的世界（UI 對照）與海報語法
+  storyboard.md              logline、形式、骨架、分鏡表與範例
+  production-design.md       構圖、字體（拉丁＋CJK）、色彩、材質
+  award-reel.md              Awwwards 與 CSS Design Awards 得獎作的共通點
+  type-motion.md             選文字演出
+  vfx-threejs.md             擬真 3D：光、材質、建模、著色器、效能
+  editing-and-motion.md      捲動時間軸、剪接目錄、觀眾的戲份
+  screening.md               毛片、放映室、無障礙／SEO／效能檢查
+  app-mode.md                儀表板、管理後台、控制台
+kit/                         本身沒有長相的基礎設施，所有效果都從零開始
+  reel.js  reel.css          播放頭：場景、釘住畫格、片段、設計過的剪接
+  looks.js                   非擬真媒材
+  grade.js  grade.html       DOM 網站調色與範例頁
+  type-fx.js  type-fx.html   44 種文字演出與範例頁
+  plane.js                   把即時介面當場景拍的攝影機
+  stage.js  props.js         3D 攝影棚與道具庫
+  app.js  fixtures.js        App 模式：路由、狀態、快捷鍵、種子資料
+  site-dom.html  site.html  app-shell.html   起手用的灰階 animatic
+scripts/
+  screening.mjs              聯絡表＋機械檢查，任何 URL 都能用（--grade：色彩偏移）
+  app-screening.mjs          路由 × 狀態 × 視窗 × 主題，附檢查旗標
+  grade-from-stills.mjs      參考影格 → 色盤、黑白點、色溫、建議 look
+  find-footage.mjs           從開放圖庫找照片、影片與音效
+  copy-check.mjs             指定文案是否全在頁面上（含關閉 JS 時）
+  render-film.mjs            網站導覽 → MP4
+  generate-image.mjs         選用的圖片生成（Runware），需你同意才會用
+```
+
+## 怎麼測試的
+
+把這個 skill 和一份客戶 brief 交給完全沒有其他上下文的全新代理。它們的摩擦紀錄、另一個模型的獨立審查，以及對其他 skill 的調查，都回饋進了文件與 kit。App 模式用同樣三份 brief 跑了三輪盲測。Kit 與腳本在 headless Chrome 下以 three 0.186、GSAP 3.15、Lenis 1.3 驗證：場景與剪接邏輯、任意順序跳播的畫格可重現、減少動態、鍵盤順序、每一種媒材、逐格算片。
+
+## 誠實的限制
+
+- 沒有在 Safari、Firefox、實體手機或螢幕閱讀器上驗證。流暢度無法在 headless 環境判斷。
+- 程序生成的 3D 在特寫「大家都認得的真實物件」時仍然吃力。Skill 會跟你要素材、把弱的素材留在遠景，但它變不出產品照。
+- 高斯潑濺只有說明、沒有實作。
+- 它拉高下限、拉開變化幅度，不保證得獎。
+
+## 致謝
+
+建構於 [GSAP](https://gsap.com)、[Three.js](https://threejs.org) 與 [Lenis](https://lenis.darkroom.engineering)。結構多樣性與裝置連續性的想法，受益於 [product-launch-motion](https://github.com/AbubakrChan/product-launch-motion) 和 [klik-anim-skill-creation](https://github.com/t3knobox/klik-anim-skill-creation)。
 
 ## 授權
 
-MIT。見 [LICENSE](./LICENSE)。
+MIT

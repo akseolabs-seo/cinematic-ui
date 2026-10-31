@@ -4,10 +4,8 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
+# Node
+node_modules/
 
 # Archives / temp
 *.zip

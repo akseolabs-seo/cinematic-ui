@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文字動畫 44 種 — type-fx.js</title>
+<!--
+  The type-fx.js gallery: forty-four type moves on colour cards, grouped by family.
+  Serve over HTTP (ES modules). Space plays / pauses, the bar scrubs p.
+  Screening a single state:  type-fx.html?fx=stamp&p=0.5&t=2.3&lang=en   (full frame, no UI)
+  The clock lives here, in the player — the library never reads time itself.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;800;900&display=block">
+<style>
+  :root { --paper: #f3f0e8; --ink: #141312; --mute: #6d6a63; }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body { margin: 0; color: var(--ink); font: 15px/1.5 "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  header.top { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 24px; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid #0001; }
+  header.top h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: .02em; }
+  header.top h1 small { font-weight: 500; color: var(--mute); font-size: 13px; margin-left: .6em; }
+  .ctl { display: flex; align-items: center; gap: 12px; flex: 1 1 420px; }
+  .ctl button { font: inherit; font-weight: 700; padding: 6px 14px; border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper); border-radius: 999px; cursor: pointer; min-width: 84px; }
+  .ctl button.alt { background: transparent; color: var(--ink); }
+  .ctl input[type=range] { flex: 1; accent-color: var(--ink); }
+  .ctl output { font: 600 13px/1 ui-monospace, Consolas, monospace; min-width: 13ch; white-space: nowrap; }
+  main { padding: 8px 24px 64px; }
+  section.fam { margin-top: 40px; }
+  section.fam > h2 { display: flex; align-items: baseline; gap: .6em; margin: 0 0 14px; font-size: 28px; font-weight: 900; }
+  section.fam > h2 i { width: .8em; height: .8em; border-radius: 50%; background: var(--fam); align-self: center; }
+  section.fam > h2 span { font-size: 14px; font-weight: 500; color: var(--mute); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+  figure { margin: 0; }
+  .tile { position: relative; aspect-ratio: 16 / 10; border-radius: 6px; overflow: hidden; outline: 3px solid var(--fam); outline-offset: -3px; }
+  .tile > .fx { position: absolute; inset: 0; }
+  figcaption { display: flex; gap: .5em; align-items: baseline; padding: 8px 2px 0; font-size: 14px; }
+  figcaption b, figcaption a { font-weight: 900; white-space: nowrap; }
+  figcaption a { font-weight: 600; }
+  figcaption .num { font: 700 12px/1 ui-monospace, Consolas, monospace; color: #fff; background: var(--fam); padding: 3px 5px; border-radius: 3px; }
+  figcaption em { font-style: normal; color: var(--mute); margin-left: auto; font-size: 12px; }
+  figcaption a { color: inherit; text-decoration: none; }
+  .single, .single body { width: 100%; height: 100%; overflow: hidden; }
+  .single main, .single header.top { display: none; }
+  #solo { position: fixed; inset: 0; }
+  #solo .fx { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>文字動畫 44 種<small>type-fx.js — Cinematic UI kit</small></h1>
+  <div class="ctl">
+    <button id="play" type="button">Play</button>
+    <input id="scrub" type="range" min="0" max="1" step="0.001" value="1" aria-label="Scrub p">
+    <output id="read">p 1.000 · t 0.00s</output>
+    <button id="lang" class="alt" type="button" aria-pressed="false">Latin</button>
+  </div>
+</header>
+<main id="gallery"></main>
+
+<script type="module">
+  import { typeFx, EFFECTS, FAMILIES, ORDER } from './type-fx.js';
+
+  // Sample words and colour cards, per effect: [zh, en, tile ground, options]
+  const S = {
+    'burst': ['衝擊', 'BOOM', '#ff5a4e', { colors: ['#fff', '#ffd23f'] }],
+    'char-swap': [['城市夜行', '台北不睡', '一起出發'], ['NIGHT', 'DRIVE', 'LIGHT'], '#111', {}],
+    'stamp': ['確定', 'APPROVED', '#f3ede2', { colors: ['#d8261c'] }],
+    'impact-zoom': ['突破', 'BREAK', '#111', { colors: ['#fff', '#ff5a4e'] }],
+    'stack': ['黎明\n之前\n出發吧\n夜行・台北', 'MAKE\nIT\nLOUD\nTONIGHT', '#ff5a4e', { colors: ['#111', '#111', '#fff', '#fff'] }],
+    'stretch': ['彈跳', 'BOUNCE', '#ffd23f', { colors: ['#111'] }],
+    'fly-through': [['突破', '新世界'], ['GO', 'NEW WORLD'], '#111', { colors: ['#ff5a4e', '#fff'] }],
+    'squeeze': [['擠壓', '變形', '切換'], ['PUSH', 'PULL', 'SNAP'], '#111', { colors: ['#ff5a4e'] }],
+    'giant-marquee': ['文字的力量', 'TYPE IN MOTION', '#ffd23f', { colors: ['#111', '#111', '#ffd23f'] }],
+    'vertical-counter': ['夜行・台北', 'QUIET HOURS', '#111', { colors: ['#ffd23f', '#f3f0e8'] }],
+    'wave-grid': ['波浪', 'WAVE', '#ffd23f', { colors: ['#111'] }],
+    'diagonal-bands': ['日出時', 'SUNRISE', '#111', { colors: ['#ffd23f', '#ff5a4e', '#f3f0e8'], inks: ['#111', '#fff', '#111'] }],
+    'wave-ribbon': ['文字的力量', 'RHYTHM', '#ffd23f', { colors: ['#111', '#111', '#ffd23f'] }],
+    'multi-marquee': ['最新消息', 'BREAKING NEWS', '#ffd23f', { colors: ['#111', '#111', '#ffd23f'] }],
+    'vertical-parallax': ['黎明之前', 'BEFORE DAWN', '#1b1a17', { colors: ['#ffd23f', '#f3f0e8'] }],
+    'crossed-tape': ['注意 危險', 'CAUTION', '#26241f', { colors: ['#111', '#ffd400'] }],
+    'tunnel': ['立體', 'DEPTH', '#0b2624', { colors: ['#fff', '#1fb5a6', '#7fe3d8'] }],
+    'corridor': ['夜行', 'NIGHT', '#061615', { colors: ['#1fb5a6', '#f3f0e8', '#fff'] }],
+    'cylinder': ['旋轉', 'ROTATE', '#1fb5a6', { colors: ['#06100f', '#0e6e65'] }],
+    'vortex': ['漩渦', 'VORTEX', '#0b2624', { colors: ['#fff', '#1fb5a6', '#ffd23f'] }],
+    'ring-tunnel': ['圓環', 'SIGNAL', '#061615', { colors: ['#fff', '#1fb5a6', '#7fe3d8'] }],
+    'orbit': ['軌道', 'ORBIT', '#1fb5a6', { colors: ['#06100f', '#f3f0e8'] }],
+    'cube-flip': [['翻轉', '方塊', '立體'], ['FLIP', 'THE', 'CUBE'], '#0b2624', {}],
+    'extrude': ['立體', 'BOLD', '#1fb5a6', { colors: ['#fff', '#0e6e65'] }],
+    'split-flap': [['台北', '高雄'], ['TAIPEI', 'OSAKA'], '#2a2350', {}],
+    'card-flip': [['今日', '開幕'], ['OPEN', 'NOW!'], '#7b5cff', {}],
+    'typewriter': [['日出時', '我們出發'], ['At sunrise', 'we leave.'], '#120f24', { colors: ['#fff', '#7b5cff'] }],
+    'slot-roll': ['大吉', 'LUCKY', '#7b5cff', { colors: ['#111', '#111', '#fff'] }],
+    'odometer': ['累計 48161 人', 'Total 48161 users', '#120f24', { colors: ['#fff', '#b9a8ff'] }],
+    'headline-swap': [['今日頭條', '最新進展'], ['Top story', 'Latest update'], '#f4f1ff', { colors: ['#120f24', '#7b5cff'] }],
+    'led-matrix': ['黎明之前', 'NOW BOARDING', '#0b0b0b', { colors: ['#2b1a0c', '#ffa53a'] }],
+    'split-reveal': [['上下', '分離'], ['SPLIT', 'REVEAL'], '#7b5cff', { colors: ['#fff', '#111'] }],
+    'outline-fill': ['文字', 'TYPE', '#111', { colors: ['#ff8a2b', '#ff8a2b', '#ffd23f', '#ff5a4e', '#f3f0e8', '#1fb5a6'] }],
+    'glitch': ['故障', 'GLITCH', '#111', { colors: ['#fff', '#00e5ff', '#ff2a6d'] }],
+    'pattern-mask': ['祭典', 'FIESTA', '#ff8a2b', { colors: ['#111', '#fff', '#ffd23f', '#ff5a4e'] }],
+    'long-shadow': ['長影', 'SHADOW', '#ff8a2b', { colors: ['#fff', '#c4560f'] }],
+    'liquid-fill': ['液體', 'LIQUID', '#111', { colors: ['#fff', '#ff8a2b', '#ffd23f'] }],
+    'highlighter': ['這句話最重要', 'the one line that matters', '#fbfaf6', { colors: ['#141312', '#ffd84d'] }],
+    'split-invert': ['反轉', 'INVERT', '#111', { colors: ['#111', '#ff8a2b'] }],
+    'motion-trail': ['殘影', 'TRAIL', '#111', { colors: ['#fff', '#ff8a2b', '#ff5a4e'] }],
+    'slit-scan': [['片幅捲動', '光的切片'], ['FRAME BY FRAME', 'REEL TWO'], '#edeae3', { colors: ['#141414'] }],
+    'read-fill': ['我們為喧鬧的地方，做安靜的機器。每一個零件都在那裡，是因為少了它，某件事就會失敗；沒有一個零件，是為了被欣賞而存在。', 'We build quiet machines for loud places. Every part is there because something failed without it, and nothing is there to be admired.', '#edeae3', { colors: ['#141414'] }],
+    'blur-resolve': ['失焦之後，對焦', 'Out of focus, into view', '#edeae3', { colors: ['#141414'], weight: 500 }],
+    'select-box': ['把想法放在一起', 'Keep ideas together', '#edeae3', { colors: ['#141414', '#2f5bff', '#ffffff'], target: { zh: '想法', en: 'ideas' }, labelFont: 'ui-sans-serif,system-ui,"Segoe UI",sans-serif' }],
+  };
+
+  const q = new URLSearchParams(location.search);
+  const LOOP = 6;                        // seconds per cycle of p
+  let T = LOOP, playing = false, last = 0;
+  const scrub = document.getElementById('scrub'), read = document.getElementById('read'), btn = document.getElementById('play');
+  let lang = q.get('lang') === 'en' ? 'en' : 'zh';
+  const fxs = [];
+
+  function make(holder, id) {
+    const [zh, en, ground, opt] = S[id];
+    const text = lang === 'en' ? en : zh;
+    let el = document.createElement('div');
+    el.className = 'fx';
+    el.style.background = ground;
+    holder.append(el);
+    const options = { ...opt, text, fit: true, seed: 7 };
+    if (opt.target) options.target = opt.target[lang];
+    if (id === 'highlighter') {          // reading copy: a real paragraph that wraps, not a fitted title
+      Object.assign(el.style, { display: 'grid', placeItems: 'center', padding: '0 10%' });
+      const p = document.createElement('p');
+      Object.assign(p.style, { margin: 0, textAlign: 'center', fontWeight: 800, lineHeight: 1.7, color: '#141312', fontSize: `${Math.max(14, holder.clientWidth / (lang === 'en' ? 15 : 11))}px` });
+      p.textContent = lang === 'en' ? 'In a page of copy, mark ' : '整段文字裡，';
+      const mark = document.createElement('span');
+      p.append(mark, lang === 'en' ? ' and nothing else.' : '，其餘都是鋪陳。');
+      el.append(p); el = mark; delete options.fit;
+    }
+    if (id === 'read-fill') {            // reading copy: the paragraph itself is the effect
+      Object.assign(el.style, { display: 'grid', placeItems: 'center', padding: '0 9%' });
+      const p = document.createElement('p');
+      Object.assign(p.style, { margin: 0, fontWeight: 500, lineHeight: 1.55, color: '#141414', fontSize: `${Math.max(11, holder.clientWidth / (lang === 'en' ? 25 : 21))}px` });
+      el.append(p); el = p; delete options.fit;
+    }
+    el.textContent = Array.isArray(text) ? text[0] : text;   // what no-JS would show
+    if (q.has('reduced')) options.reduced = q.get('reduced') !== '0';
+    return typeFx(el, id, options);
+  }
+
+  async function fonts() {
+    const all = Object.values(S).flatMap(([zh, en]) => [zh, en]).flat().join('');
+    await Promise.all(['500', '700', '800', '900'].map((w) => document.fonts.load(`${w} 40px "Noto Sans TC"`, all).catch(() => {})));
+    await document.fonts.ready;
+  }
+
+  /* ---------- single frame, for screening:  ?fx=id&p=0.5&t=2.3&lang=en ---------- */
+  if (q.has('fx')) {
+    document.documentElement.classList.add('single');
+    await fonts();
+    const solo = document.createElement('div'); solo.id = 'solo'; document.body.append(solo);
+    const fx = make(solo, q.get('fx'));
+    fx.set(+(q.get('p') ?? 1), +(q.get('t') ?? 0));
+    window.__fx = fx;
+    requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.dataset.ready = '1'; }));
+  } else {
+    await fonts();
+    build();
+    wire();
+  }
+
+  function build() {
+    const main = document.getElementById('gallery');
+    main.textContent = ''; fxs.length = 0;
+    for (const [fam, F] of Object.entries(FAMILIES)) {
+      const sec = document.createElement('section');
+      sec.className = 'fam'; sec.style.setProperty('--fam', F.color);
+      sec.innerHTML = `<h2><i></i>${F.zh} <span>${F.en} — ${F.note}</span></h2><div class="grid"></div>`;
+      main.append(sec);
+      const grid = sec.querySelector('.grid');
+      for (const id of ORDER.filter((i) => EFFECTS[i].family === fam)) {
+        const m = EFFECTS[id];
+        const fig = document.createElement('figure');
+        fig.innerHTML = `<div class="tile"></div><figcaption><span class="num">${String(m.n).padStart(2, '0')}</span><b>${m.zh}</b><a href="?fx=${id}&lang=${lang}">${id}</a><em>${m.kind} · ${m.mood}</em></figcaption>`;
+        fig.title = m.use;
+        grid.append(fig);
+        fxs.push({ fx: make(fig.querySelector('.tile'), id), kind: m.kind, fig, visible: true });
+      }
+    }
+    const io = new IntersectionObserver((es) => { for (const e of es) { const r = fxs.find((x) => x.fig === e.target); if (r) r.visible = e.isIntersecting; } });
+    for (const r of fxs) io.observe(r.fig);
+    apply(true);
+  }
+
+  /* ---------- the player: one clock, mapped per kind ---------- */
+  function state() {
+    const gp = playing ? (T % LOOP) / LOOP : +scrub.value;
+    return { gp, t: playing ? T : gp * LOOP };
+  }
+  function apply(all) {
+    const { gp, t } = state();
+    for (const r of fxs) {
+      if (!all && !r.visible) continue;
+      if (r.kind === 'entrance') r.fx.set(Math.min(1, gp * 1.7), t);
+      else if (r.kind === 'switch') r.fx.set(gp, t);
+      else r.fx.set(1, t);
+    }
+    read.value = `p ${gp.toFixed(3)} · t ${t.toFixed(2)}s`;
+    if (playing) scrub.value = gp;
+  }
+  function loop(now) {
+    if (!playing) return;
+    T += Math.min(0.1, (now - last) / 1000); last = now;
+    apply(false);
+    requestAnimationFrame(loop);
+  }
+  function toggle() {
+    playing = !playing; btn.textContent = playing ? 'Pause' : 'Play';
+    if (playing) { T = +scrub.value * LOOP; last = performance.now(); requestAnimationFrame(loop); }
+  }
+  function wire() {
+    btn.addEventListener('click', toggle);
+    scrub.addEventListener('input', () => { if (playing) toggle(); apply(true); });
+    addEventListener('keydown', (e) => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); toggle(); } });
+    const lb = document.getElementById('lang');
+    const label = () => { lb.textContent = lang === 'en' ? '中文' : 'Latin'; lb.setAttribute('aria-pressed', String(lang === 'en')); };
+    label();
+    lb.addEventListener('click', () => { lang = lang === 'en' ? 'zh' : 'en'; for (const r of fxs) r.fx.destroy(); build(); label(); });
+  }
+</script>
+</body>
+</html>
