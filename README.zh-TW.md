@@ -100,6 +100,12 @@ git clone https://github.com/akseolabs-seo/cinematic-ui ~/.claude/skills/cinemat
 
 ## 安裝
 
+**任何 agent，一行搞定**（Claude Code、Codex、Cursor、Gemini CLI 等，透過 [skills.sh](https://skills.sh/akseolabs-seo/cinematic-ui)）
+
+```bash
+npx skills add akseolabs-seo/cinematic-ui
+```
+
 **Claude Code**
 
 ```bash

@@ -123,6 +123,12 @@ poster frames and a `CREDITS.md`.
 
 ## Install
 
+**Any agent, one line** (Claude Code, Codex, Cursor, Gemini CLI and more, via [skills.sh](https://skills.sh/akseolabs-seo/cinematic-ui))
+
+```bash
+npx skills add akseolabs-seo/cinematic-ui
+```
+
 **Claude Code**
 
 ```bash
